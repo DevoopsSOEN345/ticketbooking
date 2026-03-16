@@ -33,6 +33,25 @@ jobs:
           name: coverage-report
           path: .artifacts/coverage-report
 
+      - name: Download JVM Binaries Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jvm-binaries
+          path: .artifacts/jvm-binaries
+
+      - name: Resolve JVM binary directories
+        id: resolve_binaries
+        run: |
+          set -euo pipefail
+          mapfile -t dirs < <(find .artifacts/jvm-binaries -type d \( -name classes -o -path '*/kotlin-classes/*' \))
+          if [ "${#dirs[@]}" -eq 0 ]; then
+            echo "No compiled class directories found under .artifacts/jvm-binaries" >&2
+            find .artifacts/jvm-binaries -maxdepth 6 -type d | cat
+            exit 1
+          fi
+          binaries=$(IFS=,; echo "${dirs[*]}")
+          echo "binaries=${binaries}" >> "$GITHUB_OUTPUT"
+
       - name: Download Sonar Test Report Artifact
         uses: actions/download-artifact@v4
         with:
@@ -48,7 +67,7 @@ jobs:
             -Dsonar.projectKey=${{ secrets.PROJECT_KEY }}
             -Dsonar.sources=app/src/main/java
             -Dsonar.tests=app/src/test/java,app/src/androidTest/java
-            -Dsonar.java.binaries=app/build
+            -Dsonar.java.binaries=${{ steps.resolve_binaries.outputs.binaries }}
             -Dsonar.junit.reportPaths=.artifacts/sonar-test-report
             -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
 
