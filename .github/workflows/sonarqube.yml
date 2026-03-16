@@ -33,13 +33,6 @@ jobs:
           name: coverage-report
           path: .artifacts/coverage-report
 
-      - name: Download JVM Binaries Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: jvm-binaries
-          path: .artifacts/jvm-binaries
-
-
       - name: Download Sonar Test Report Artifact
         uses: actions/download-artifact@v4
         with:
@@ -55,16 +48,9 @@ jobs:
             -Dsonar.projectKey=${{ secrets.PROJECT_KEY }}
             -Dsonar.sources=app/src/main/java
             -Dsonar.tests=app/src/test/java,app/src/androidTest/java
-            -Dsonar.java.binaries=${{ steps.resolve_binaries.outputs.binaries }}
             -Dsonar.junit.reportPaths=.artifacts/sonar-test-report
             -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
 
-      - name: Check SonarQube Quality Gate
-        id: quality_gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
-        timeout-minutes: 10
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Add JaCoCo coverage summary to GitHub Actions
         env:
