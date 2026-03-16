@@ -1,0 +1,76 @@
+name: SonarQube Analysis
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonarqube-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonarqube:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SONAR_TOKEN != '' && secrets.SONAR_ORG != '' && secrets.SONAR_PROJECT_KEY != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Download JaCoCo and test artifacts from Android CI
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-reports
+          path: .artifacts/ci-reports
+
+      - name: Run SonarQube scan on uploaded JaCoCo files
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.sources=app/src/main/java
+            -Dsonar.tests=app/src/test/java,app/src/androidTest/java
+            -Dsonar.java.binaries=app/build
+            -Dsonar.junit.reportPaths=.artifacts/ci-reports/app/build/test-results/testDebugUnitTest
+            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/ci-reports/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+
+      - name: Add JaCoCo coverage summary to GitHub Actions
+        run: |
+          python3 - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          report = Path(".artifacts/ci-reports/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+          if not report.exists():
+              raise SystemExit(f"JaCoCo XML not found: {report}")
+
+          root = ET.parse(report).getroot()
+          line_counter = next((c for c in root.findall("counter") if c.get("type") == "LINE"), None)
+          if line_counter is None:
+              raise SystemExit("LINE counter missing in JaCoCo XML")
+
+          missed = int(line_counter.get("missed", "0"))
+          covered = int(line_counter.get("covered", "0"))
+          total = missed + covered
+          coverage = (covered / total * 100.0) if total else 0.0
+
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          summary.write_text(
+              "## Coverage Report\n"
+              f"- JaCoCo line coverage: **{coverage:.2f}%**\n"
+              f"- Covered lines: `{covered}`\n"
+              f"- Missed lines: `{missed}`\n"
+              f"- Report: `{report}`\n",
+              encoding="utf-8",
+          )
+          PY
