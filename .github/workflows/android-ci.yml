@@ -39,3 +39,12 @@ jobs:
     needs: integration_tests
     uses: ./.github/workflows/end2endtest.yml
     secrets: inherit
+
+  ci_done:
+    name: CI Done (Gating)
+    runs-on: ubuntu-latest
+    needs: sonarqube_analysis
+    if: ${{ always() }}
+    steps:
+      - name: Finish gating check
+        run: echo "Build + Sonar gating path completed."

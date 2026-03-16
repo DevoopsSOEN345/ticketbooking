@@ -51,7 +51,6 @@ jobs:
             -Dsonar.junit.reportPaths=.artifacts/sonar-test-report
             -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
 
-
       - name: Add JaCoCo coverage summary to GitHub Actions
         env:
           QUALITY_GATE_STATUS: ${{ steps.quality_gate.outputs.quality-gate-status }}
