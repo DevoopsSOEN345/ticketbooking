@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: sonarqube-${{ github.ref }}
@@ -23,39 +22,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.sha }}
-
-      - name: Set up Java 21 for Backend
-        if: ${{ hashFiles('Backend/pom.xml') != '' }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: maven
-
-      - name: Run Spring Boot tests
-        if: ${{ hashFiles('Backend/pom.xml') != '' }}
-        working-directory: ./Backend
-        run: mvn test -Dspring.profiles.active=test
-        env:
-          EXTERNAL_API_KEY: ${{ secrets.CONCORDIA_API_KEY }}
-          EXTERNAL_API_USER: ${{ secrets.CONCORDIA_API_USER }}
-          GOOGLE_API_KEY: ${{ secrets.MAPS_API_KEY }}
-
-      - name: JaCoCo Coverage Report
-        if: ${{ hashFiles('Backend/pom.xml') != '' && github.event.pull_request.number != null }}
-        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848
-        with:
-          paths: Backend/target/site/jacoco/jacoco.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "Coverage Report for Backend"
-          update-comment: true
-          min-coverage-overall: 80
-          min-coverage-changed-files: 80
-
-      - name: Copy dependencies for SonarCloud
-        if: ${{ hashFiles('Backend/pom.xml') != '' }}
-        working-directory: ./Backend
-        run: mvn dependency:copy-dependencies -DoutputDirectory=target/dependency
 
       - name: Download Coverage Artifact
         uses: actions/download-artifact@v4
@@ -119,7 +85,6 @@ jobs:
               f"- JaCoCo line coverage: **{coverage:.2f}%**\n"
               f"- Covered lines: `{covered}`\n"
               f"- Missed lines: `{missed}`\n"
-              f"- Report: `{report}`\n"
               f"- Sonar quality gate: **{quality_gate}**\n",
               encoding="utf-8",
           )
