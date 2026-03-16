@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: sonarqube-${{ github.ref }}
@@ -23,14 +24,53 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.sha }}
 
-      - name: Download JaCoCo and test artifacts from Android CI
+      - name: Set up Java 21 for Backend
+        if: ${{ hashFiles('Backend/pom.xml') != '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run Spring Boot tests
+        if: ${{ hashFiles('Backend/pom.xml') != '' }}
+        working-directory: ./Backend
+        run: mvn test -Dspring.profiles.active=test
+        env:
+          EXTERNAL_API_KEY: ${{ secrets.CONCORDIA_API_KEY }}
+          EXTERNAL_API_USER: ${{ secrets.CONCORDIA_API_USER }}
+          GOOGLE_API_KEY: ${{ secrets.MAPS_API_KEY }}
+
+      - name: JaCoCo Coverage Report
+        if: ${{ hashFiles('Backend/pom.xml') != '' && github.event.pull_request.number != null }}
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848
+        with:
+          paths: Backend/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Coverage Report for Backend"
+          update-comment: true
+          min-coverage-overall: 80
+          min-coverage-changed-files: 80
+
+      - name: Copy dependencies for SonarCloud
+        if: ${{ hashFiles('Backend/pom.xml') != '' }}
+        working-directory: ./Backend
+        run: mvn dependency:copy-dependencies -DoutputDirectory=target/dependency
+
+      - name: Download Coverage Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ci-reports
-          path: .artifacts/ci-reports
+          name: coverage-report
+          path: .artifacts/coverage-report
 
-      - name: Run SonarQube scan on uploaded JaCoCo files
-        uses: SonarSource/sonarqube-scan-action@v6
+      - name: Download Sonar Test Report Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-test-report
+          path: .artifacts/sonar-test-report
+
+      - name: Run SonarQube scan on downloaded coverage
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -40,17 +80,26 @@ jobs:
             -Dsonar.sources=app/src/main/java
             -Dsonar.tests=app/src/test/java,app/src/androidTest/java
             -Dsonar.java.binaries=app/build
-            -Dsonar.junit.reportPaths=.artifacts/ci-reports/app/build/test-results/testDebugUnitTest
-            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/ci-reports/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            -Dsonar.junit.reportPaths=.artifacts/sonar-test-report
+            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
+
+      - name: Check SonarQube Quality Gate
+        id: quality_gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
+        timeout-minutes: 10
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Add JaCoCo coverage summary to GitHub Actions
+        env:
+          QUALITY_GATE_STATUS: ${{ steps.quality_gate.outputs.quality-gate-status }}
         run: |
           python3 - <<'PY'
           import os
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          report = Path(".artifacts/ci-reports/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+          report = Path(".artifacts/coverage-report/jacocoTestReport.xml")
           if not report.exists():
               raise SystemExit(f"JaCoCo XML not found: {report}")
 
@@ -63,6 +112,7 @@ jobs:
           covered = int(line_counter.get("covered", "0"))
           total = missed + covered
           coverage = (covered / total * 100.0) if total else 0.0
+          quality_gate = os.environ.get("QUALITY_GATE_STATUS", "unknown")
 
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
           summary.write_text(
@@ -70,7 +120,8 @@ jobs:
               f"- JaCoCo line coverage: **{coverage:.2f}%**\n"
               f"- Covered lines: `{covered}`\n"
               f"- Missed lines: `{missed}`\n"
-              f"- Report: `{report}`\n",
+              f"- Report: `{report}`\n"
+              f"- Sonar quality gate: **{quality_gate}**\n",
               encoding="utf-8",
           )
           PY

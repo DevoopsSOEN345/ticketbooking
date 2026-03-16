@@ -50,43 +50,39 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
-      - name: Upload CI reports artifact
+      - name: Upload Coverage Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-reports
+          name: coverage-report
           path: |
-            app/build/reports/**
-            app/build/test-results/**
-            app/build/jacoco/**
-          retention-days: 7
+            app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            app/build/reports/jacoco/jacocoTestReport/html/**
+          retention-days: 14
 
-  reports_and_artifactory:
-    name: Reports Artifact + Artifactory Publish
-    runs-on: ubuntu-latest
-    needs: build_and_test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download CI reports artifact
-        uses: actions/download-artifact@v4
+      - name: Upload Sonar Test Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-reports
-          path: .artifacts/ci-reports
+          name: sonar-test-report
+          path: app/build/test-results/testDebugUnitTest/**
+          retention-days: 14
 
-      - name: Archive reports for Artifactory
-        run: |
-          tar -czf ci-analysis-reports.tar.gz -C .artifacts ci-reports
+      - name: Upload Unit Test Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            app/build/reports/tests/testDebugUnitTest/**
+            app/build/test-results/testDebugUnitTest/**
+          retention-days: 14
 
-      - name: Publish reports to Artifactory
-        if: ${{ secrets.ARTIFACTORY_URL != '' && secrets.ARTIFACTORY_REPO != '' && secrets.ARTIFACTORY_USERNAME != '' && secrets.ARTIFACTORY_TOKEN != '' }}
-        run: |
-          curl --fail --silent --show-error \
-            -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}" \
-            -T ci-analysis-reports.tar.gz \
-            "${{ secrets.ARTIFACTORY_URL }}/${{ secrets.ARTIFACTORY_REPO }}/ci/${{ github.repository }}/${{ github.run_id }}/ci-analysis-reports.tar.gz"
+  sonarqube_analysis:
+    name: SonarQube Analysis (Gating)
+    needs: build_and_test
+    uses: ./.github/workflows/sonarqube.yml
+    secrets: inherit
 
   integration_tests:
     name: Integration Tests
@@ -98,10 +94,4 @@ jobs:
     name: End-to-End Regression
     needs: integration_tests
     uses: ./.github/workflows/end2endtest.yml
-    secrets: inherit
-
-  sonarqube_analysis:
-    name: SonarQube Analysis
-    needs: end_to_end_tests
-    uses: ./.github/workflows/sonarqube.yml
     secrets: inherit
