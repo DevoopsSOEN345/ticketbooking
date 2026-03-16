@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "805288970451",
+    "project_id": "devoops-2fbdb",
+    "storage_bucket": "devoops-2fbdb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:805288970451:android:07d0b43cdaf81d29396c26",
+        "android_client_info": {
+          "package_name": "com.example.devoops"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVNPNLHFsnDqb3jUkLHukelohTPdJaK7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
