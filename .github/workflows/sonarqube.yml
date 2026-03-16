@@ -15,7 +15,7 @@ jobs:
   sonarqube:
     name: SonarQube Scan
     runs-on: ubuntu-latest
-    if: ${{ secrets.SONAR_TOKEN != '' && secrets.SONAR_ORG != '' && secrets.SONAR_PROJECT_KEY != '' }}
+    if: ${{ secrets.SONAR_TOKEN != '' && secrets.PROJECT_KEY != '' }}
 
     steps:
       - name: Checkout repository
@@ -75,8 +75,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=${{ secrets.SONAR_ORG }}
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }}
             -Dsonar.sources=app/src/main/java
             -Dsonar.tests=app/src/test/java,app/src/androidTest/java
             -Dsonar.java.binaries=app/build
