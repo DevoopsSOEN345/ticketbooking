@@ -2,6 +2,11 @@ name: SonarQube Analysis
 
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+      PROJECT_KEY:
+        required: true
 
 permissions:
   contents: read
@@ -14,7 +19,6 @@ jobs:
   sonarqube:
     name: SonarQube Scan
     runs-on: ubuntu-latest
-    if: ${{ secrets.SONAR_TOKEN != '' && secrets.PROJECT_KEY != '' }}
 
     steps:
       - name: Checkout repository
