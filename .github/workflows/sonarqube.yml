@@ -33,6 +33,12 @@ jobs:
           name: coverage-report
           path: .artifacts/coverage-report
 
+      - name: Download JVM Binaries Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jvm-binaries
+          path: .artifacts/jvm-binaries
+
       - name: Download Sonar Test Report Artifact
         uses: actions/download-artifact@v4
         with:
