@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build_and_test:
-    name: Build, Lint, Unit Test, Coverage
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
