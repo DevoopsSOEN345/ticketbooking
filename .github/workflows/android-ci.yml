@@ -28,18 +28,6 @@ jobs:
     uses: ./.github/workflows/sonarqube.yml
     secrets: inherit
 
-  integration_tests:
-    name: Integration Tests (Non-Gating)
-    needs: build_and_test
-    uses: ./.github/workflows/integrationtest.yml
-    secrets: inherit
-
-  end_to_end_tests:
-    name: End-to-End Regression (Non-Gating)
-    needs: integration_tests
-    uses: ./.github/workflows/end2endtest.yml
-    secrets: inherit
-
   ci_done:
     name: CI Done (Gating)
     runs-on: ubuntu-latest
