@@ -33,7 +33,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
-        working-directory: backend
         run: chmod +x gradlew
 
 
@@ -49,7 +48,7 @@ jobs:
       - name: SonarCloud analysis
         uses: SonarSource/sonarcloud-github-action@v3
         with:
-            projectBaseDir: backend
+            projectBaseDir: .
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
