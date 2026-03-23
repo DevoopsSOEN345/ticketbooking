@@ -7,6 +7,8 @@ on:
         required: true
       PROJECT_KEY:
         required: true
+   
+  workflow_dispatch: 
 
 permissions:
   contents: read
@@ -33,11 +35,11 @@ jobs:
           name: coverage-report
           path: .artifacts/coverage-report
 
-      - name: Download JVM Binaries Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: jvm-binaries
-          path: .artifacts/jvm-binaries
+      # - name: Download JVM Binaries Artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: jvm-binaries
+      #     path: .artifacts/jvm-binaries
 
       - name: Download Sonar Test Report Artifact
         uses: actions/download-artifact@v4
@@ -45,17 +47,16 @@ jobs:
           name: sonar-test-report
           path: .artifacts/sonar-test-report
 
-      - name: Run SonarQube scan on downloaded coverage
-        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
+      - name: Build and run SonarQube
+        run: |
+          ./gradlew clean build sonarqube \
+            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} \
+            -Dsonar.organization=devoopssoen345 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.junit.reportPaths=.artifacts/sonar-test-report \
+            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }}
-            -Dsonar.sources=app/src/main/java
-            -Dsonar.tests=app/src/test/java,app/src/androidTest/java
-            -Dsonar.junit.reportPaths=.artifacts/sonar-test-report
-            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
 
       - name: Add JaCoCo coverage summary to GitHub Actions
         env:
