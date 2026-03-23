@@ -1,6 +1,9 @@
-name: CI
+name: Android CI
+
 on:
   push:
+    branches:
+      - "**"
   pull_request:
     branches:
       - "**"
@@ -10,21 +13,21 @@ permissions:
   contents: read
   pull-requests: write
 
-  workflow_dispatch: 
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build_and_sonar:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  build_and_test:
+    name: Build and Unit Test
+    uses: ./.github/workflows/buildtest.yml
+    secrets: inherit
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-          cache: gradle
+  sonarqube_analysis:
+    name: SonarQube Analysis (Gating)
+    needs: build_and_test
+    uses: ./.github/workflows/sonarqube.yml
+    secrets: inherit
 
   ci_done:
     name: CI Done (Gating)
