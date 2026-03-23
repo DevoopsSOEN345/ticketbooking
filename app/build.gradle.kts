@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
     jacoco
+    id("org.sonarqube")
 }
 
 android {
