@@ -5,3 +5,10 @@ plugins {
     id ("org.sonarqube") version "5.1.0.4882"
 }
 
+sonarqube {
+    properties {
+        property("sonar.sources", "app/src/main/java")
+        property("sonar.tests", "app/src/test/java")
+    }
+}
+
