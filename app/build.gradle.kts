@@ -38,6 +38,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
 
 jacoco {
     toolVersion = "0.8.12"
@@ -48,11 +51,22 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
+    implementation(libs.firebase.database)
     androidTestImplementation(libs.espresso.core)
+
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth:22.3.0")
+    implementation("com.google.firebase:firebase-firestore:25.0.0")
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
@@ -92,3 +106,4 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
 }
+
