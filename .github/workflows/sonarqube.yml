@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and run SonarQube
         run: |
-          ./gradlew clean build :app:sonar \
+          ./gradlew clean build sonar \
             -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} \
             -Dsonar.organization=devoopssoen345 \
             -Dsonar.host.url=https://sonarcloud.io \
