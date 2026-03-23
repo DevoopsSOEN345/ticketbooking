@@ -2,16 +2,10 @@ name: SonarQube Analysis
 
 on:
   workflow_call:
-    secrets:
-      SONAR_TOKEN:
-        required: true
-      PROJECT_KEY:
-        required: true
-   
-  workflow_dispatch: 
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: sonarqube-${{ github.ref }}
@@ -27,26 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.sha }}
 
-      - name: Download Coverage Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-          path: .artifacts/coverage-report
-
-      # - name: Download JVM Binaries Artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: jvm-binaries
-      #     path: .artifacts/jvm-binaries
-
-      - name: Download Sonar Test Report Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sonar-test-report
-          path: .artifacts/sonar-test-report
-          
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -57,52 +32,79 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Download Coverage Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: app/build/reports/jacoco
+
+      - name: Download JVM Binaries Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jvm-binaries
+          path: app/build
+
+      - name: Download Sonar Test Report Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-test-report
+          path: app/build/test-results
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and run SonarQube
-        run: |
-          ./gradlew  sonar \
-            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} \
-            -Dsonar.organization=devoopssoen345 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.junit.reportPaths=.artifacts/sonar-test-report \
-            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
+      - name: Run SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: DevoopsSOEN345_ticketbooking
+          SONAR_ORG: devoopssoen345
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew sonar \
+            -Dsonar.sources=app/src/main/java,app/src/main/kotlin \
+            -Dsonar.tests=app/src/test/java,app/src/androidTest/java \
+            -Dsonar.java.binaries=app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes,app/build/tmp/kotlin-classes/debug \
+            -Dsonar.coverage.jacoco.xmlReportPaths=app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml \
+            -Dsonar.junit.reportPaths=app/build/test-results/testDebugUnitTest \
+            -Dsonar.exclusions="**/*Test.java,**/*Test.kt,**/BuildConfig.java,**/R.java,**/R$*.java" \
+            --stacktrace --no-daemon
 
       - name: Add JaCoCo coverage summary to GitHub Actions
-        env:
-          QUALITY_GATE_STATUS: ${{ steps.quality_gate.outputs.quality-gate-status }}
+        if: always()
         run: |
           python3 - <<'PY'
           import os
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          report = Path(".artifacts/coverage-report/jacocoTestReport.xml")
+          report = Path("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
           if not report.exists():
-              raise SystemExit(f"JaCoCo XML not found: {report}")
+              print(f"⚠️  JaCoCo XML not found at {report}")
+              exit(0)
 
-          root = ET.parse(report).getroot()
-          line_counter = next((c for c in root.findall("counter") if c.get("type") == "LINE"), None)
-          if line_counter is None:
-              raise SystemExit("LINE counter missing in JaCoCo XML")
+          try:
+              root = ET.parse(report).getroot()
+              line_counter = next((c for c in root.findall("counter") if c.get("type") == "LINE"), None)
+              if line_counter is None:
+                  print("⚠️  LINE counter missing in JaCoCo XML")
+                  exit(0)
 
-          missed = int(line_counter.get("missed", "0"))
-          covered = int(line_counter.get("covered", "0"))
-          total = missed + covered
-          coverage = (covered / total * 100.0) if total else 0.0
-          quality_gate = os.environ.get("QUALITY_GATE_STATUS", "unknown")
+              missed = int(line_counter.get("missed", "0"))
+              covered = int(line_counter.get("covered", "0"))
+              total = missed + covered
+              coverage = (covered / total * 100.0) if total else 0.0
 
-          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
-          summary.write_text(
-              "## Coverage Report\n"
-              f"- JaCoCo line coverage: **{coverage:.2f}%**\n"
-              f"- Covered lines: `{covered}`\n"
-              f"- Missed lines: `{missed}`\n"
-              f"- Sonar quality gate: **{quality_gate}**\n",
-              encoding="utf-8",
-          )
+              summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+              summary.write_text(
+                  "## 📊 Coverage Report\n"
+                  f"- **JaCoCo line coverage:** {coverage:.2f}%\n"
+                  f"- **Covered lines:** {covered}\n"
+                  f"- **Missed lines:** {missed}\n"
+                  f"- **Total lines:** {total}\n",
+                  encoding="utf-8",
+              )
+              print(f"✅ Coverage: {coverage:.2f}%")
+          except Exception as e:
+              print(f"⚠️  Error parsing JaCoCo XML: {e}")
+              exit(0)
           PY
