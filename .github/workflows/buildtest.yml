@@ -35,12 +35,10 @@ jobs:
 
 
       - name: Build
-        working-directory: backend
-        run: ./gradlew build -x test
+        run: ./gradlew :app:build -x test
 
       - name: Run unit tests
-        working-directory: backend
-        run: ./gradlew test
+        run: ./gradlew :app:testDebugUnitTest :app:check
 
       - name: Upload Sonar Test Report Artifact
         if: always()
