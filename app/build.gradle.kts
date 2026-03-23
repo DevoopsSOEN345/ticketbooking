@@ -103,10 +103,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
 
     executionData.setFrom(
-        fileTree(buildDirectory) {
-            include("jacoco/testDebugUnitTest.exec")
-            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-        }
+        files("${buildDirectory}/jacoco/testDebugUnitTest.exec")
     )
 }
 
