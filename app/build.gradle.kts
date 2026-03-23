@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
     jacoco
+    id("org.sonarqube")
 }
 
 android {
@@ -92,3 +93,29 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
 }
+
+// SonarCloud Configuration
+sonarqube {
+    properties {
+        property("sonar.projectKey", findProperty("sonar.projectKey") ?: "DevoopsSOEN345_ticketbooking")
+        property("sonar.organization", "devoopssoen345")
+        property("sonar.host.url", "https://sonarcloud.io")
+
+        // Source and test locations
+        property("sonar.sources", "src/main/java,src/main/kotlin")
+        property("sonar.tests", "src/test/java,src/androidTest/java")
+
+        // JaCoCo coverage
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+
+        // Java binaries - critical for SonarQube analysis
+        property("sonar.java.binaries", "build/intermediates/javac/debug/compileDebugJavaWithJavac/classes,build/tmp/kotlin-classes/debug")
+
+        // Unit test results
+        property("sonar.junit.reportPaths", "build/test-results/testDebugUnitTest")
+
+        // Exclusions
+        property("sonar.exclusions", "**/*Test.java,**/*Test.kt,**/BuildConfig.java")
+    }
+}
+
