@@ -56,12 +56,11 @@ jobs:
       - name: Run SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: DevoopsSOEN345_ticketbooking
+          SONAR_ORG: devoopssoen345
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./gradlew sonar \
-            -Dsonar.projectKey=DevoopsSOEN345_ticketbooking \
-            -Dsonar.organization=devoopssoen345 \
-            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=app/src/main/java,app/src/main/kotlin \
             -Dsonar.tests=app/src/test/java,app/src/androidTest/java \
             -Dsonar.java.binaries=app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes,app/build/tmp/kotlin-classes/debug \

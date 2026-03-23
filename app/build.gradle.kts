@@ -97,9 +97,15 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 // SonarCloud Configuration
 sonarqube {
     properties {
-        property("sonar.projectKey", findProperty("sonar.projectKey") ?: "DevoopsSOEN345_ticketbooking")
-        property("sonar.organization", "devoopssoen345")
+        // Project identity - support both env vars and hardcoded defaults
+        property("sonar.projectKey", System.getenv("SONAR_PROJECT_KEY") ?: "DevoopsSOEN345_ticketbooking")
+        property("sonar.organization", System.getenv("SONAR_ORG") ?: "devoopssoen345")
         property("sonar.host.url", "https://sonarcloud.io")
+
+        // Authentication - support env var for CI environments
+        System.getenv("SONAR_TOKEN")?.let {
+            property("sonar.login", it)
+        }
 
         // Source and test locations
         property("sonar.sources", "src/main/java,src/main/kotlin")
