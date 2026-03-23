@@ -4,15 +4,6 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
     id("jacoco")
-   id("org.sonarqube") // Apply it here!
-}
-
-sonar {
-    properties {
-        // Only paths and metadata here. NO KEYS.
-        property("sonar.sources", "src/main/java")
-        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
-    }
 }
 
 android {
