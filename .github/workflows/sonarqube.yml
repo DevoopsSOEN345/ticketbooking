@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: sonarqube-${{ github.ref }}
@@ -45,18 +46,18 @@ jobs:
           name: sonar-test-report
           path: .artifacts/sonar-test-report
 
-      - name: Run SonarQube scan on downloaded coverage
-        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
+      - name: Run SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }}
-            -Dsonar.sources=app/src/main/java
-            -Dsonar.tests=app/src/test/java,app/src/androidTest/java
-            -Dsonar.junit.reportPaths=.artifacts/sonar-test-report
-            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew sonar \
+            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} \
+            -Dsonar.organization=devoopssoen345 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.junit.reportPaths=.artifacts/sonar-test-report \
+            -Dsonar.coverage.jacoco.xmlReportPaths=.artifacts/coverage-report/jacocoTestReport.xml \
+            -Dsonar.java.binaries=app/build/classes
       - name: Add JaCoCo coverage summary to GitHub Actions
         env:
           QUALITY_GATE_STATUS: ${{ steps.quality_gate.outputs.quality-gate-status }}
