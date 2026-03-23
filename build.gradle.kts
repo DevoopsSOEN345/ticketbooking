@@ -9,6 +9,7 @@ sonarqube {
     properties {
         property("sonar.sources", "app/src/main/java")
         property("sonar.tests", "app/src/test/java")
+        property("sonar.java.binaries", "app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes")
     }
 }
 
