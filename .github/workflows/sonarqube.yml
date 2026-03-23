@@ -35,23 +35,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-
-      - name: Download Sonar Test Report Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sonar-test-report
-          path: app/build/test-results
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Build and generate test reports
+        run: ./gradlew :app:build :app:testDebugUnitTest :app:jacocoTestReport
 
       - name: SonarCloud analysis
         uses: SonarSource/sonarcloud-github-action@v3
         with:
-            projectBaseDir: .
+          projectBaseDir: .
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 #
 #      - name: Run SonarCloud Analysis
