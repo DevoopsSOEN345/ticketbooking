@@ -93,34 +93,4 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     )
 }
 
-// SonarCloud Configuration
-sonarqube {
-    properties {
-        // Project identity - support both env vars and hardcoded defaults
-        property("sonar.projectKey", System.getenv("SONAR_PROJECT_KEY") ?: "DevoopsSOEN345_ticketbooking")
-        property("sonar.organization", System.getenv("SONAR_ORG") ?: "devoopssoen345")
-        property("sonar.host.url", "https://sonarcloud.io")
-
-        // Authentication - support env var for CI environments
-        System.getenv("SONAR_TOKEN")?.let {
-            property("sonar.login", it)
-        }
-
-        // Source and test locations
-        property("sonar.sources", "src/main/java,src/main/kotlin")
-        property("sonar.tests", "src/test/java,src/androidTest/java")
-
-        // JaCoCo coverage
-        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
-
-        // Java binaries - critical for SonarQube analysis
-        property("sonar.java.binaries", "build/intermediates/javac/debug/compileDebugJavaWithJavac/classes,build/tmp/kotlin-classes/debug")
-
-        // Unit test results
-        property("sonar.junit.reportPaths", "build/test-results/testDebugUnitTest")
-
-        // Exclusions
-        property("sonar.exclusions", "**/*Test.java,**/*Test.kt,**/BuildConfig.java")
-    }
-}
 
