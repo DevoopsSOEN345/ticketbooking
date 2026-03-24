@@ -15,6 +15,9 @@ public class UserViewModel extends ViewModel {
     public MutableLiveData<String> status = new MutableLiveData<>();
 
     public String verificationId;
+    public UserViewModel() {
+         // Initialization logic
+    }
 
     public UserViewModel(AuthRepository authRepo, UserRepository userRepo) {
         this.authRepo = authRepo;
