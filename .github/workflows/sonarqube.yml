@@ -35,8 +35,18 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and generate test reports
-        run: ./gradlew :app:build :app:testDebugUnitTest :app:jacocoTestReport
+      - name: Run tests and generate JaCoCo coverage report
+        run: ./gradlew :app:testDebugUnitTest :app:jacocoTestReport --no-build-cache
+
+      - name: Verify JaCoCo report was generated
+        run: |
+          if [ -f "app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml" ]; then
+            echo "✅ JaCoCo XML report found"
+            head -20 app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          else
+            echo "❌ JaCoCo XML report NOT found at app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+            find app/build -name "*.xml" -type f 2>/dev/null | head -10
+          fi
 
       - name: SonarCloud analysis
         uses: SonarSource/sonarcloud-github-action@v3

@@ -100,15 +100,15 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     val javaClasses = fileTree("${buildDirectory}/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
         exclude(excludes)
     }
-    val kotlinClasses = fileTree("${buildDirectory}/tmp/kotlin-classes/debug") {
-        exclude(excludes)
-    }
 
-    classDirectories.setFrom(files(javaClasses, kotlinClasses))
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(files(javaClasses))
+    sourceDirectories.setFrom(files("src/main/java"))
 
+    // Use the execution data from AGP's new path
     executionData.setFrom(
-        files("${buildDirectory}/jacoco/testDebugUnitTest.exec")
+        fileTree(buildDirectory) {
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+        }
     )
 }
 
