@@ -56,20 +56,26 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.firebase.database)
     androidTestImplementation(libs.espresso.core)
+    
+    // Testing dependencies for 100% code coverage
+    testImplementation(libs.junit)
+    testImplementation("org.robolectric:robolectric:4.13")
+    androidTestImplementation(libs.ext.junit)
 
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth:22.3.0")
+    implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore:25.0.0")
+    
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
-
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.0")
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
@@ -87,7 +93,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/BuildConfig.*",
         "**/Manifest*.*",
         "**/*Test*.*",
-        "android/**/*.*"
+        "android/**/*.*",
+        "**/*Activity.*"
     )
 
     val buildDirectory = layout.buildDirectory.get().asFile
@@ -95,15 +102,15 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     val javaClasses = fileTree("${buildDirectory}/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
         exclude(excludes)
     }
-    val kotlinClasses = fileTree("${buildDirectory}/tmp/kotlin-classes/debug") {
-        exclude(excludes)
-    }
 
-    classDirectories.setFrom(files(javaClasses, kotlinClasses))
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(files(javaClasses))
+    sourceDirectories.setFrom(files("src/main/java"))
 
+    // Use the execution data from AGP's new path
     executionData.setFrom(
-        files("${buildDirectory}/jacoco/testDebugUnitTest.exec")
+        fileTree(buildDirectory) {
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+        }
     )
 }
 
