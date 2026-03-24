@@ -21,6 +21,7 @@ sonar {
         property("sonar.sources", "app/src/main/java")
         property("sonar.tests", "app/src/test/java,app/src/androidTest/java")
         property("sonar.coverage.jacoco.xmlReportPaths", "app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        property("sonar.coverage.exclusions", "**/MainActivity.java")
         property("sonar.java.binaries", "app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes")
         property("sonar.junit.reportPaths", "app/build/test-results/testDebugUnitTest")
         property("sonar.exclusions", "**/*Test.java,**/*Test.kt,**/BuildConfig.java")
