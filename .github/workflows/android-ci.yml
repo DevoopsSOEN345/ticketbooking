@@ -28,6 +28,12 @@ jobs:
     needs: build_and_test
     uses: ./.github/workflows/sonarqube.yml
     secrets: inherit
+  
+  performance_testing:
+    name: JMeter Performance Gate
+    needs: build_and_test
+    uses: ./.github/workflows/jmeter.yml
+    secrets: inherit 
 
   ci_done:
     name: CI Done (Gating)
