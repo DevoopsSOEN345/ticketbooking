@@ -30,6 +30,8 @@
             android:name=".presentation.SignupActivity"
             android:exported="false"
             />
+        <activity android:name=".presentation.AdminMainActivity" />
+        <activity android:name=".presentation.CustomerMainActivity" />
     </application>
 
 </manifest>

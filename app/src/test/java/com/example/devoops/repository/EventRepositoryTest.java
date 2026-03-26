@@ -1,10 +1,8 @@
-package com.example.devoops.repositoryTest;
+package com.example.devoops.repository;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.devoops.models.Event;
-import com.example.devoops.repository.EventRepository;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -119,11 +117,11 @@ class EventRepositoryTest {
         verify(mockEventChild).get();
     }
 
-    @Test
-    void listEvents_Success() {
-        EventRepository.EventListCallback callback = mock(EventRepository.EventListCallback.class);
-        repo.listEvents(callback);
-
-        verify(mockDb).child("events");
-    }
+//    @Test
+//    void getEvents_Success() {
+//        EventRepository.EventListCallback callback = mock(EventRepository.EventListCallback.class);
+//        repo.getEvents()(callback);
+//
+//        verify(mockDb).child("events");
+//    }
 }

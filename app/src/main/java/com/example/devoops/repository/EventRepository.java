@@ -2,10 +2,17 @@ package com.example.devoops.repository;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import com.example.devoops.models.Event;
 import com.example.devoops.models.EventStatus;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,21 +75,29 @@ public class EventRepository {
         }).addOnFailureListener(e -> Log.e("RTDB", "Fetch failed", e));
     }
 
-    public void listEvents(EventListCallback callback) {
-        DatabaseReference eventsRef = db.child("events");
-        eventsRef.get().addOnSuccessListener(snapshot -> {
-            List<Event> events = new ArrayList<>();
-            for (var child : snapshot.getChildren()) {
-                Event event = child.getValue(Event.class);
-                if (event != null) {
-                    events.add(event);
+    public LiveData<List<Event>> getEvents() {
+        MutableLiveData<List<Event>> liveData = new MutableLiveData<>();
+        db.child("events").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<Event> list = new ArrayList<>();
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Event event = data.getValue(Event.class);
+                    if (event != null) {
+                        event.setEventId(data.getKey());
+                        list.add(event);
+                    }
                 }
+                Log.d("REPO_DEBUG", "Fetched " + list.size() + " events from Firebase");
+                liveData.setValue(list);
             }
-            callback.onSuccess(events);
-        }).addOnFailureListener(e -> {
-            Log.e("RTDB", "Fetch failed", e);
-            callback.onError(e.getMessage());
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("REPO_DEBUG", "Read failed: " + error.getMessage());
+            }
         });
+        return liveData;
     }
 
     public interface EventListCallback {

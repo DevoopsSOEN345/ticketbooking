@@ -1,18 +1,26 @@
 package com.example.devoops.presentation;
 
-import android.app.Activity;
+import static androidx.core.content.ContextCompat.startActivity;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.util.Log;
+
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.devoops.models.User;
+import com.example.devoops.models.UserRole;
 import com.example.devoops.repository.AuthRepository;
 import com.example.devoops.repository.UserRepository;
 
 public class UserViewModel extends ViewModel {
 
-    private AuthRepository authRepo;
-    private UserRepository userRepo;
+    private AuthRepository authRepo = new AuthRepository();;
+    private UserRepository userRepo = new UserRepository();
     public MutableLiveData<String> status = new MutableLiveData<>();
+    private MutableLiveData<User> loggedInUser = new MutableLiveData<>();
 
     public String verificationId;
     public UserViewModel() {
@@ -26,9 +34,10 @@ public class UserViewModel extends ViewModel {
 
     // EMAIL SIGNUP
     public void signupEmail(String email, String password, String name) {
+
         if (email.isEmpty() || password.length() <= 5 || name.isEmpty()) {
             status.setValue("Valid email and 6+ char password required");
-            return; // Path 1
+            return;
         }
 
         authRepo.signupEmail(email, password, new AuthRepository.AuthCallback() {
@@ -45,12 +54,23 @@ public class UserViewModel extends ViewModel {
         });
     }
 
+    public MutableLiveData<User> getLoggedInUser() {
+        return loggedInUser;
+    }
     // EMAIL LOGIN
     public void loginEmail(String email, String password) {
         authRepo.loginEmail(email, password, new AuthRepository.AuthCallback() {
             @Override
             public void onSuccess(String uid) {
+
                 status.setValue("Login success");
+                authRepo.getUserById(uid).observeForever(user -> {
+                    if (user != null) {
+                        loggedInUser.setValue(user);
+                    } else {
+                        Log.d("VMODEL_DEBUG", "Auth succeeded but no DB record for UID: " + uid);
+                    }
+                });
             }
 
             @Override
@@ -59,4 +79,5 @@ public class UserViewModel extends ViewModel {
             }
         });
     }
+
 }
