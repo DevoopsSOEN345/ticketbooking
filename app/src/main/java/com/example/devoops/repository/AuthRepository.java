@@ -62,12 +62,19 @@ public class AuthRepository {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         cb.onSuccess(auth.getCurrentUser().getUid());
-                        Log.d("USER_good", "User Good?");
+                        safeLog("USER_good", "User Good?");
 
                     } else {
                         cb.onError(task.getException().getMessage());
                     }
                 });
+    }
+    private void safeLog(String tag, String msg) {
+        try {
+            Log.d(tag, msg);
+        } catch (Throwable ignored) {
+            // no-op for JVM unit tests
+        }
     }
     public LiveData<User> getUserById(String uid) {
         MutableLiveData<User> liveData = new MutableLiveData<>();
@@ -86,4 +93,5 @@ public class AuthRepository {
 
         return liveData;
     }
+
 }

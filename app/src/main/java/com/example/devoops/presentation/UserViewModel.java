@@ -17,16 +17,25 @@ import com.example.devoops.repository.UserRepository;
 
 public class UserViewModel extends ViewModel {
 
-    private AuthRepository authRepo = new AuthRepository();;
-    private UserRepository userRepo = new UserRepository();
+    private AuthRepository authRepo;
+    private UserRepository userRepo;
     public MutableLiveData<String> status = new MutableLiveData<>();
     private MutableLiveData<User> loggedInUser = new MutableLiveData<>();
 
     public String verificationId;
-    public UserViewModel() {
+    /*public UserViewModel() {
          // Initialization logic
+    }*/
+
+
+
+    //Default constructor for production
+    public UserViewModel() {
+        this.authRepo = new AuthRepository();
+        this.userRepo = new UserRepository();
     }
 
+    //Constructor for unit tests — inject mocks to avoid Firebase calls
     public UserViewModel(AuthRepository authRepo, UserRepository userRepo) {
         this.authRepo = authRepo;
         this.userRepo = userRepo;
