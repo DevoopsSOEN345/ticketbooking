@@ -10,11 +10,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Create Build Directory
+        run: mkdir -p app/build/jmeter-results
+
       - name: Run JMeter Stress Test
         uses: QAInsights/PerfAction@v5.6.3
         with:
           test-plan-path: './tests/performance/DevOops.jmx'
-          args: "-JFB_TOKEN=${{ secrets.FB_TOKEN }} -e -o ./reports/html/"
+          args: "-JFB_TOKEN=${{ secrets.FB_TOKEN }} -e -o app/build/jmeter-results"
 
       - name: Upload Performance Report
         uses: actions/upload-artifact@v4
