@@ -10,9 +10,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Report Directory
-        run: mkdir -p ${{ github.workspace }}/performance-results
-
       - name: Run JMeter Stress Test
         uses: QAInsights/PerfAction@v5.6.3
         with:
@@ -24,4 +21,4 @@ jobs:
         if: always() 
         with:
           name: jmeter-html-report
-          path: ${{ github.workspace }}/performance-results
+          path: app/build/jmeter-results
