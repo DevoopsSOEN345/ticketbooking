@@ -1,6 +1,10 @@
 package com.example.devoops.presentation;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.devoops.R;
+import com.example.devoops.models.User;
+import com.example.devoops.models.UserRole;
 
 public class LoginActivity extends AppCompatActivity {
     private UserViewModel viewModel;
@@ -24,10 +30,18 @@ public class LoginActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(UserViewModel.class);
         initViews();
 
+        viewModel.getLoggedInUser().observe(this, user -> {
+            if (user != null) {
+                Log.d("NAV_DEBUG", "User role: " + user.getRole());
+                navigate(user);
+            }
+        });
+
         // 1. Email Login
         btnLoginEmail.setOnClickListener(v -> {
             String email = etEmail.getText().toString();
             String pass = etPassword.getText().toString();
+            Log.d("BUTTON_CLICK", "Login button was pressed!");
             viewModel.loginEmail(email, pass);
         });
 
@@ -52,10 +66,18 @@ public class LoginActivity extends AppCompatActivity {
                 etOtp.setVisibility(View.VISIBLE);
                 btnVerifyOtp.setVisibility(View.VISIBLE);
             }
-            if (s.contains("success")) {
-                // Navigate to Profile/Home Screen
-            }
         });
+    }
+    private void navigate(User user) {
+        Intent intent;
+
+        if (user.getRole() == UserRole.ADMIN) {
+            intent = new Intent(this, AdminMainActivity.class);
+        } else {
+            intent = new Intent(this, CustomerMainActivity.class);
+        }
+        startActivity(intent);
+        finish();
     }
 
     private void initViews() {
