@@ -8,6 +8,20 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import android.util.Log;
+import androidx.lifecycle.LiveData;
+import androidx.arch.core.executor.ArchTaskExecutor;
+import androidx.arch.core.executor.TaskExecutor;
+import com.example.devoops.models.User;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -161,6 +175,108 @@ class AuthRepositoryTest {
         }
     }
 
+    @Test
+    void givenLoginSuccess_whenSafeLogCalled_thenNoExceptionPropagated() {
+    // safeLog is called inside loginEmail on success — Log.d will throw
+    // in a JVM test environment, exercising the catch branch
+    String email = "log@example.com";
+    String password = "pass123";
+    String uid = "uid-log";
+    when(firebaseAuth.signInWithEmailAndPassword(email, password)).thenReturn(authTask);
+    when(authTask.isSuccessful()).thenReturn(true);
+    when(firebaseAuth.getCurrentUser()).thenReturn(firebaseUser);
+    when(firebaseUser.getUid()).thenReturn(uid);
+
+    repository.loginEmail(email, password, callback);
+    ArgumentCaptor<OnCompleteListener<AuthResult>> captor =
+            ArgumentCaptor.forClass(OnCompleteListener.class);
+    verify(authTask).addOnCompleteListener(captor.capture());
+    captor.getValue().onComplete(authTask);
+
+    // safeLog ran (and swallowed the Log.d RuntimeException) — login still succeeds
+    verify(callback).onSuccess(uid);
+    }
+
+
+
+    @Test
+void givenValidUid_whenGetUserByIdSucceeds_thenLiveDataContainsUser() {
+    ArchTaskExecutor.getInstance().setDelegate(new TaskExecutor() {
+        @Override public void executeOnDiskIO(Runnable r) { r.run(); }
+        @Override public void postToMainThread(Runnable r) { r.run(); }
+        @Override public boolean isMainThread() { return true; }
+    });
+
+    try (MockedStatic<FirebaseDatabase> dbStatic = mockStatic(FirebaseDatabase.class);
+         MockedStatic<Log> logStatic = mockStatic(Log.class)) {
+
+        FirebaseDatabase mockDatabase = mock(FirebaseDatabase.class);
+        DatabaseReference mockRootRef = mock(DatabaseReference.class);
+        DatabaseReference mockUsersRef = mock(DatabaseReference.class);
+        DatabaseReference mockChildRef = mock(DatabaseReference.class);
+        Task<DataSnapshot> mockTask = mock(Task.class);
+        DataSnapshot mockSnapshot = mock(DataSnapshot.class);
+        User expectedUser = mock(User.class);
+
+        dbStatic.when(FirebaseDatabase::getInstance).thenReturn(mockDatabase);
+        when(mockDatabase.getReference()).thenReturn(mockRootRef);
+        when(mockRootRef.child("users")).thenReturn(mockUsersRef);
+        when(mockUsersRef.child("uid-abc")).thenReturn(mockChildRef);
+        when(mockChildRef.get()).thenReturn(mockTask);
+        when(mockTask.addOnSuccessListener(any())).thenAnswer(invocation -> {
+            OnSuccessListener<DataSnapshot> listener = invocation.getArgument(0);
+            when(mockSnapshot.getValue(User.class)).thenReturn(expectedUser);
+            listener.onSuccess(mockSnapshot);
+            return mockTask;
+        });
+        when(mockTask.addOnFailureListener(any())).thenReturn(mockTask);
+
+        LiveData<User> result = repository.getUserById("uid-abc");
+
+        assertNotNull(result);
+        assertNotNull(result.getValue());
+    } finally {
+        ArchTaskExecutor.getInstance().setDelegate(null);
+    }
+}
+
+    @Test
+void givenValidUid_whenGetUserByIdFails_thenLiveDataContainsNull() {
+    ArchTaskExecutor.getInstance().setDelegate(new TaskExecutor() {
+        @Override public void executeOnDiskIO(Runnable r) { r.run(); }
+        @Override public void postToMainThread(Runnable r) { r.run(); }
+        @Override public boolean isMainThread() { return true; }
+    });
+
+    try (MockedStatic<FirebaseDatabase> dbStatic = mockStatic(FirebaseDatabase.class);
+         MockedStatic<Log> logStatic = mockStatic(Log.class)) {
+
+        FirebaseDatabase mockDatabase = mock(FirebaseDatabase.class);
+        DatabaseReference mockRootRef = mock(DatabaseReference.class);
+        DatabaseReference mockUsersRef = mock(DatabaseReference.class);
+        DatabaseReference mockChildRef = mock(DatabaseReference.class);
+        Task<DataSnapshot> mockTask = mock(Task.class);
+
+        dbStatic.when(FirebaseDatabase::getInstance).thenReturn(mockDatabase);
+        when(mockDatabase.getReference()).thenReturn(mockRootRef);
+        when(mockRootRef.child("users")).thenReturn(mockUsersRef);
+        when(mockUsersRef.child("uid-fail")).thenReturn(mockChildRef);
+        when(mockChildRef.get()).thenReturn(mockTask);
+        when(mockTask.addOnSuccessListener(any())).thenReturn(mockTask);
+        when(mockTask.addOnFailureListener(any())).thenAnswer(invocation -> {
+            OnFailureListener listener = invocation.getArgument(0);
+            listener.onFailure(new Exception("Database error"));
+            return mockTask;
+        });
+
+        LiveData<User> result = repository.getUserById("uid-fail");
+
+        assertNotNull(result);
+        assertEquals(null, result.getValue());
+    } finally {
+        ArchTaskExecutor.getInstance().setDelegate(null);
+    }
+}
 }
 
 

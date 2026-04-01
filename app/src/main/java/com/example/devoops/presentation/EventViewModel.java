@@ -9,6 +9,7 @@ import com.example.devoops.repository.EventRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class EventViewModel extends ViewModel {
     private EventRepository repo;
     private LiveData<List<Event>> events;

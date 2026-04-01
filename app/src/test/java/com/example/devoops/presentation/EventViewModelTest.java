@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import java.util.ArrayList;
 
 import androidx.arch.core.executor.ArchTaskExecutor;
 import androidx.arch.core.executor.TaskExecutor;
@@ -330,5 +333,35 @@ class EventViewModelTest {
         List<Event> result = viewModel.getFilteredEvents().getValue();
         assertNotNull(result);
         assertEquals(2, result.size());
+    }
+    @Test
+    void givenValidEventDetails_whenCreateEvent_thenRepoCreateAndGetEventsCalled() {
+    eventsLiveData.setValue(new ArrayList<>());
+
+    viewModel.createEvent("Concert", "15-06-2025", "Music", "Montreal", 100);
+
+    verify(mockRepo).createEvent("Concert", "15-06-2025", "Music", "Montreal", 100);
+    // getEvents() called once in constructor + once after create
+    verify(mockRepo, times(2)).getEvents();
+    }
+
+    @Test
+    void givenEventId_whenCancelEvent_thenRepoCancelAndGetEventsCalled() {
+    eventsLiveData.setValue(new ArrayList<>());
+
+    viewModel.cancelEvent("1");
+
+    verify(mockRepo).cancelEvent("1");
+    verify(mockRepo, times(2)).getEvents();
+    }
+
+    @Test
+    void givenValidEventDetails_whenEditEvent_thenRepoEditAndGetEventsCalled() {
+    eventsLiveData.setValue(new ArrayList<>());
+
+    viewModel.editEvent("1", "Updated Concert", "20-06-2025", "Music", "Toronto", 200);
+
+    verify(mockRepo).editEvent("1", "Updated Concert", "20-06-2025", "Music", "Toronto", 200);
+    verify(mockRepo, times(2)).getEvents();
     }
 }
