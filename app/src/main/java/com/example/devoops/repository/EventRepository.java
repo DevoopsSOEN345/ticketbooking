@@ -21,17 +21,19 @@ import java.util.UUID;
 public class EventRepository {
     private DatabaseReference db;
 
-    public EventRepository(DatabaseReference mockedDb) {
-        this.db = mockedDb;
-    }
+        public EventRepository(DatabaseReference mockedDb) {
+            this.db = mockedDb;
+        }
 
-    public EventRepository() {
-        try {
-            this.db = FirebaseDatabase.getInstance().getReference();
-        } catch (Exception e) { }
-    }
 
-    public void createEvent(String name, String dateTime, String category, String location, int totalSeats) {
+        public EventRepository() {
+            try {
+                this.db = FirebaseDatabase.getInstance().getReference();
+            } catch (Exception e) { }
+        }
+
+
+        public void createEvent(String name, String dateTime, String category, String location, int totalSeats) {
         String eventId = UUID.randomUUID().toString();
         Event event = new Event(eventId, name, dateTime, category, location, totalSeats);
         DatabaseReference eventRef = db.child("events").child(eventId);
