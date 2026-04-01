@@ -1,5 +1,6 @@
 package com.example.devoops.presentation;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,16 +20,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.devoops.R;
 import com.example.devoops.models.Event;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CustomerMainActivity extends AppCompatActivity {
     private EventViewModel viewModel;
+    private ReservationViewModel reservationViewModel;
     private EventAdapter adapter;
     private TextView tvActiveFilters;
 
-    // Keep track of current filter values to pre-fill the dialog
     private String currentFilterDate = "";
     private String currentFilterLocation = "";
     private String currentFilterCategory = "";
@@ -42,32 +45,82 @@ public class CustomerMainActivity extends AppCompatActivity {
         ImageView btnSearch = findViewById(R.id.btnSearch);
         ImageView btnFilter = findViewById(R.id.btnFilter);
         tvActiveFilters = findViewById(R.id.tvActiveFilters);
+        Button btnMyReservations = findViewById(R.id.btnMyReservations);
 
+        // --- Set up adapter (customer mode) ---
         adapter = new EventAdapter(false, new EventAdapter.OnEventClickListener() {
             @Override
             public void onEdit(Event event) {
-                // empty bc customer do not have admin rights
+                // Not used for customers
             }
 
             @Override
             public void onDelete(Event event) {
-                // empty bc customer do not have admin rights
+                // Not used for customers
+            }
+        });
+
+        // Set the reserve listener for the customer
+        adapter.setReserveListener(new EventAdapter.OnReserveClickListener() {
+            @Override
+            public void onReserve(Event event) {
+                new AlertDialog.Builder(CustomerMainActivity.this)
+                        .setTitle("Confirm Reservation")
+                        .setMessage("Reserve a seat for \"" + event.getName() + "\"?")
+                        .setPositiveButton("Reserve", (dialog, which) -> {
+                            reservationViewModel.reserveEvent(event);
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
+
+            @Override
+            public void onCancelReservation(Event event) {
+                new AlertDialog.Builder(CustomerMainActivity.this)
+                        .setTitle("Cancel Reservation")
+                        .setMessage("Cancel your reservation for \"" + event.getName() + "\"?")
+                        .setPositiveButton("Yes, Cancel", (dialog, which) -> {
+                            reservationViewModel.cancelReservation(event);
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
             }
         });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+        // --- ViewModels ---
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
+        reservationViewModel = new ViewModelProvider(this).get(ReservationViewModel.class);
 
-        // Observe filtered events instead of raw events
+        // Initialize reservation VM with current user's UID
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        reservationViewModel.init(uid);
+
+        // Observe filtered events
         viewModel.getFilteredEvents().observe(this, events -> {
             if (events != null) {
                 adapter.setEvents(events);
             }
         });
 
-        // Toggle search bar visibility when search icon is tapped
+        // Observe reserved event IDs so the adapter shows "Cancel Reservation"
+        // instead of "Reserve" for already-reserved events
+        reservationViewModel.getReservedEventIds().observe(this, ids -> {
+            if (ids != null) {
+                adapter.setReservedEventIds(ids);
+            }
+        });
+
+        // Observe status messages (success/error toasts)
+        reservationViewModel.getStatusMessage().observe(this, msg -> {
+            if (msg != null && !msg.isEmpty()) {
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // --- Search ---
         btnSearch.setOnClickListener(v -> {
             if (etSearch.getVisibility() == View.GONE) {
                 etSearch.setVisibility(View.VISIBLE);
@@ -79,22 +132,22 @@ public class CustomerMainActivity extends AppCompatActivity {
             }
         });
 
-        // Live search as the user types
         etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 viewModel.setSearchQuery(s.toString());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
+            @Override public void afterTextChanged(Editable s) {}
         });
 
-        // Open filter dialog
+        // --- Filter ---
         btnFilter.setOnClickListener(v -> showFilterDialog());
+
+        // --- My Reservations button ---
+        btnMyReservations.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerMainActivity.this, MyReservationsActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void showFilterDialog() {
@@ -106,7 +159,6 @@ public class CustomerMainActivity extends AppCompatActivity {
         Button btnApply = dialogView.findViewById(R.id.btnApplyFilter);
         Button btnClear = dialogView.findViewById(R.id.btnClearFilter);
 
-        // Pre-fill with current filter values
         etFilterDate.setText(currentFilterDate);
         etFilterLocation.setText(currentFilterLocation);
         etFilterCategory.setText(currentFilterCategory);
@@ -151,7 +203,7 @@ public class CustomerMainActivity extends AppCompatActivity {
             tvActiveFilters.setVisibility(View.GONE);
         } else {
             tvActiveFilters.setVisibility(View.VISIBLE);
-            tvActiveFilters.setText("Filters: " + String.join(" · ", active));
+            tvActiveFilters.setText("Filters: " + String.join(" \u00B7 ", active));
         }
     }
 }

@@ -72,7 +72,9 @@
                 android:textSize="13sp"/>
         </LinearLayout>
 
+        <!-- Admin buttons: Edit / Cancel -->
         <LinearLayout
+            android:id="@+id/adminButtonsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -95,5 +97,18 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:textColor="#D32F2F"/>
         </LinearLayout>
+
+        <!-- Customer button: Reserve (hidden by default, shown for customers) -->
+        <Button
+            android:id="@+id/reserveBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Reserve"
+            android:backgroundTint="#388E3C"
+            android:textColor="@android:color/white"
+            style="@style/Widget.MaterialComponents.Button"
+            android:visibility="gone"/>
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>
