@@ -8,12 +8,13 @@
     android:padding="12dp"
     android:background="#F8F9FA">
 
+    <!-- Top Bar: title + search icon + filter icon -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:padding="4dp">
 
         <TextView
@@ -26,13 +27,45 @@
             android:textStyle="bold"/>
 
         <ImageView
+            android:id="@+id/btnSearch"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@android:drawable/ic_menu_search"
             android:contentDescription="Search"
             app:tint="#666666" />
+
+        <ImageView
+            android:id="@+id/btnFilter"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="16dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:contentDescription="Filter"
+            app:tint="#666666" />
     </LinearLayout>
 
+    <!-- Search bar: hidden by default, toggled by search icon -->
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search events by name..."
+        android:inputType="text"
+        android:singleLine="true"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone" />
+
+    <!-- Active filter chips row: hidden when no filters are set -->
+    <TextView
+        android:id="@+id/tvActiveFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="13sp"
+        android:textColor="#666666"
+        android:visibility="gone" />
+
+    <!-- Event list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
