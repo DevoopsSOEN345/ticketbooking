@@ -48,11 +48,16 @@
     <EditText
         android:id="@+id/etSearch"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:hint="Search events by name..."
         android:inputType="text"
         android:singleLine="true"
         android:layout_marginBottom="12dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:background="#EDE7F6"
+        android:textColor="#4A148C"
+        android:textColorHint="#7E57C2"
         android:visibility="gone" />
 
     <!-- Active filter chips row: hidden when no filters are set -->
