@@ -126,36 +126,41 @@ class AuthRepositoryTest {
 
     @Test
     void givenDefaultConstructor_whenCreated_thenRepositoryInstanceIsNotNull() {
-        // Given / When
-        AuthRepository defaultRepository = new AuthRepository();
+        try (MockedStatic<FirebaseAuth> firebaseAuthStatic = mockStatic(FirebaseAuth.class)) {
+            firebaseAuthStatic.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
 
-        // Then
-        assertNotNull(defaultRepository);
+            AuthRepository defaultRepository = new AuthRepository();
+
+            assertNotNull(defaultRepository);
+            firebaseAuthStatic.verify(FirebaseAuth::getInstance);
+        }
     }
 
     @Test
     void givenDefaultRepository_whenSignupCalled_thenInitializesFirebaseAuthViaGetInstance_primePath5() {
-        // Given
-        AuthRepository defaultRepository = new AuthRepository();
-        String uid = "uid-lazy-init";
-        when(firebaseAuth.createUserWithEmailAndPassword("lazy@test.com", "password123")).thenReturn(authTask);
-        when(authTask.isSuccessful()).thenReturn(true);
-        when(firebaseAuth.getCurrentUser()).thenReturn(firebaseUser);
-        when(firebaseUser.getUid()).thenReturn(uid);
-
-        // When
         try (MockedStatic<FirebaseAuth> firebaseAuthStatic = mockStatic(FirebaseAuth.class)) {
             firebaseAuthStatic.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
+
+            AuthRepository defaultRepository = new AuthRepository();
+
+            String uid = "uid-lazy-init";
+            when(firebaseAuth.createUserWithEmailAndPassword("lazy@test.com", "password123"))
+                    .thenReturn(authTask);
+            when(authTask.isSuccessful()).thenReturn(true);
+            when(firebaseAuth.getCurrentUser()).thenReturn(firebaseUser);
+            when(firebaseUser.getUid()).thenReturn(uid);
+
             defaultRepository.signupEmail("lazy@test.com", "password123", callback);
-            ArgumentCaptor<OnCompleteListener<AuthResult>> listenerCaptor = ArgumentCaptor.forClass(OnCompleteListener.class);
+            ArgumentCaptor<OnCompleteListener<AuthResult>> listenerCaptor =
+                    ArgumentCaptor.forClass(OnCompleteListener.class);
             verify(authTask).addOnCompleteListener(listenerCaptor.capture());
             listenerCaptor.getValue().onComplete(authTask);
 
-            // Then
             firebaseAuthStatic.verify(FirebaseAuth::getInstance);
             verify(callback).onSuccess(uid);
         }
     }
+
 }
 
 
