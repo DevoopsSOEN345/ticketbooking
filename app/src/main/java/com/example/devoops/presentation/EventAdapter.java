@@ -65,7 +65,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         holder.title.setText(event.getName());
         holder.date.setText("Date: " + event.getDateTime());
         holder.category.setText(event.getCategory());
-        holder.location.setText("📍 " + event.getLocation());
+        holder.location.setText("Location: " + event.getLocation());
         holder.totalSeats.setText("Total Seats: " + event.getTotalSeats());
         holder.availableSeats.setText("Available: " + event.getOpenSeats());
 
