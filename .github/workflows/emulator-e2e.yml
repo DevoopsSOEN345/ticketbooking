@@ -54,8 +54,18 @@ jobs:
           arch: x86_64
           profile: Nexus 6
           script: |
-            firebase emulators:exec --project demo-test \
-              "./gradlew --stacktrace --no-daemon connectedDebugAndroidTest"
+            adb kill-server || true
+            adb start-server
+            adb wait-for-device
+            for i in $(seq 1 60); do
+              boot=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+              if [ "$boot" = "1" ]; then
+                echo "Emulator fully booted."
+                break
+              fi
+              sleep 5
+            done
+            firebase emulators:exec --project demo-test --only database -- ./gradlew --stacktrace --no-daemon connectedDebugAndroidTest
         env:
           FIREBASE_TOKEN: ${{ secrets.FB_TOKEN }}
           FIREBASE_EMULATOR_HOST: localhost
