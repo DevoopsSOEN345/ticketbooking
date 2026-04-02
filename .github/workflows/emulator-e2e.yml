@@ -79,4 +79,3 @@ jobs:
             app/build/reports/androidTests/connected/**
             app/build/outputs/androidTest-results/connected/**
           retention-days: 14
-  ````
