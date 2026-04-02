@@ -87,7 +87,10 @@ public class EventRepository {
                     Event event = data.getValue(Event.class);
                     if (event != null) {
                         event.setEventId(data.getKey());
-                        list.add(event);
+                        // Only include active events
+                        if (event.getEventStatus() != EventStatus.CANCELLED) {
+                            list.add(event);
+                        }
                     }
                 }
                 Log.d("REPO_DEBUG", "Fetched " + list.size() + " events from Firebase");

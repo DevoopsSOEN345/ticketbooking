@@ -1,44 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp"
-    android:background="#F8F9FA">
+    android:padding="16dp"
+    android:background="@android:color/white">
 
+    <!-- Top bar: Search icon, Filter icon, My Reservations button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp"
-        android:padding="4dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Available Events"
-            android:textSize="24sp"
-            android:textColor="#333333"
-            android:textStyle="bold"/>
+        android:layout_marginBottom="8dp">
 
         <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:id="@+id/btnSearch"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_search"
             android:contentDescription="Search"
-            app:tint="#666666" />
+            android:padding="4dp"/>
+
+        <ImageView
+            android:id="@+id/btnFilter"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:contentDescription="Filter"
+            android:padding="4dp"
+            android:layout_marginStart="8dp"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/btnMyReservations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Reservations"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="#3F51B5"/>
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search events..."
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvActiveFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#666"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:scrollbars="vertical"
-        android:paddingBottom="16dp"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
 </LinearLayout>

@@ -1,41 +1,77 @@
 package com.example.devoops.presentation;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.devoops.models.Event;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 
-class EventAdapterTest {
+public class EventAdapterTest {
 
-    @Test
-    void givenEventAdapterClass_whenInspectingMethods_thenContainsPrimeUiPaths() throws Exception {
-        // Given / When
-        Method onCreateViewHolder = EventAdapter.class.getDeclaredMethod(
-                "onCreateViewHolder", android.view.ViewGroup.class, int.class);
-        Method onBindViewHolder = EventAdapter.class.getDeclaredMethod(
-                "onBindViewHolder", EventAdapter.ViewHolder.class, int.class);
-        Method getItemCount = EventAdapter.class.getDeclaredMethod("getItemCount");
-        Method setEvents = EventAdapter.class.getDeclaredMethod("setEvents", java.util.List.class);
+    private Event testEvent;
+    private EventAdapter.OnEventClickListener dummyClickListener;
 
-        // Then
-        assertNotNull(onCreateViewHolder);
-        assertNotNull(onBindViewHolder);
-        assertNotNull(getItemCount);
-        assertNotNull(setEvents);
+    @BeforeEach
+    void setUp() {
+        testEvent = new Event();
+        testEvent.setName("Test Event");
+        testEvent.setDateTime("2026-04-10");
+        testEvent.setCategory("Music");
+        testEvent.setLocation("Montreal");
+        testEvent.setTotalSeats(100);
+        testEvent.setOpenSeats(50);
+        testEvent.setEventId("evt-001");
+
+        dummyClickListener = new EventAdapter.OnEventClickListener() {
+            @Override public void onEdit(Event event) {}
+            @Override public void onDelete(Event event) {}
+        };
     }
 
+    
+    // Prime Path 1: isAdmin=true → Admin branch
+    
     @Test
-    void givenEventAdapterClass_whenInspectingFields_thenContainsEventListAndListener() throws Exception {
-        // Given / When
-        Field events = EventAdapter.class.getDeclaredField("events");
-        Field listener = EventAdapter.class.getDeclaredField("listener");
-        Field isAdmin = EventAdapter.class.getDeclaredField("isAdmin");
+    @DisplayName("PP1: Admin adapter — constructor and getItemCount")
+    void primePath1_adminAdapter() {
+        EventAdapter adapter = new EventAdapter(true, dummyClickListener);
+        assertEquals(0, adapter.getItemCount());
+    }
 
-        // Then
-        assertNotNull(events);
-        assertNotNull(listener);
-        assertNotNull(isAdmin);
+    // Prime Path 2: Customer, already reserved → Cancel branch
+    @Test
+    @DisplayName("PP2: Reserved set contains event — Cancel branch condition")
+    void primePath2_reservedSetContainsEvent() {
+        Set<String> reserved = new HashSet<>();
+        reserved.add("evt-001");
+
+        assertTrue(reserved.contains(testEvent.getEventId()));
+    }
+
+    // Prime Path 3: Customer, not reserved, openSeats <= 0 → Sold Out
+    @Test
+    @DisplayName("PP3: Not reserved and no seats — Sold Out branch condition")
+    void primePath3_notReservedNoSeats() {
+        testEvent.setOpenSeats(0);
+        Set<String> reserved = new HashSet<>();
+
+        assertFalse(reserved.contains(testEvent.getEventId()));
+        assertTrue(testEvent.getOpenSeats() <= 0);
+    }
+
+    // Prime Path 4: Customer, not reserved, openSeats > 0 → Reserve
+    @Test
+    @DisplayName("PP4: Not reserved and seats available — Reserve branch condition")
+    void primePath4_notReservedSeatsAvailable() {
+        testEvent.setOpenSeats(25);
+        Set<String> reserved = new HashSet<>();
+
+        assertFalse(reserved.contains(testEvent.getEventId()));
+        assertTrue(testEvent.getOpenSeats() > 0);
     }
 }

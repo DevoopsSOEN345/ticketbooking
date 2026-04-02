@@ -14,7 +14,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
-
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.DatabaseError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +23,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import androidx.annotation.NonNull;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -169,5 +170,78 @@ class EventRepositoryTest {
     void defaultConstructor_notNull_primePath8() {
         EventRepository defaultRepo = new EventRepository();
         assertNotNull(defaultRepo);
+    }
+    @Test
+void getEvents_onDataChange_populatesLiveData_primePath9() {
+    try (MockedStatic<Log> logMock = mockStatic(Log.class)) {
+
+        // Allow LiveData.setValue to work without Android main thread
+        androidx.arch.core.executor.ArchTaskExecutor.getInstance()
+            .setDelegate(new androidx.arch.core.executor.TaskExecutor() {
+                @Override
+                public void executeOnDiskIO(@NonNull Runnable runnable) { runnable.run(); }
+                @Override
+                public void postToMainThread(@NonNull Runnable runnable) { runnable.run(); }
+                @Override
+                public boolean isMainThread() { return true; }
+            });
+
+        DataSnapshot childSnap = mock(DataSnapshot.class);
+        Event event = new Event("id1", "Concert", "2026", "Music", "MTL", 100);
+        when(childSnap.getValue(Event.class)).thenReturn(event);
+        when(childSnap.getKey()).thenReturn("id1");
+
+        when(mockSnapshot.getChildren()).thenReturn(List.of(childSnap));
+
+        ArgumentCaptor<ValueEventListener> captor =
+                ArgumentCaptor.forClass(ValueEventListener.class);
+
+        LiveData<List<Event>> result = repo.getEvents();
+
+        verify(mockEventsRef).addValueEventListener(captor.capture());
+        captor.getValue().onDataChange(mockSnapshot);
+
+        List<Event> events = result.getValue();
+        assertNotNull(events);
+        assertEquals(1, events.size());
+        assertEquals("id1", events.get(0).getEventId());
+
+        logMock.verify(() -> Log.d("REPO_DEBUG", "Fetched 1 events from Firebase"));
+
+        // Clean up
+        androidx.arch.core.executor.ArchTaskExecutor.getInstance().setDelegate(null);
+    }
+}
+        
+
+    @Test
+    void getEvents_onCancelled_logsError_primePath10() {
+        try (MockedStatic<Log> logMock = mockStatic(Log.class)) {
+
+            DatabaseError mockError = mock(DatabaseError.class);
+            when(mockError.getMessage()).thenReturn("Permission denied");
+
+            ArgumentCaptor<ValueEventListener> captor =
+                    ArgumentCaptor.forClass(ValueEventListener.class);
+
+            repo.getEvents();
+
+            verify(mockEventsRef).addValueEventListener(captor.capture());
+            captor.getValue().onCancelled(mockError);
+
+            logMock.verify(() -> Log.e("REPO_DEBUG", "Read failed: Permission denied"));
+        }
+    }
+
+    @Test
+    void reserveSeats_returnsFalse_primePath11() {
+        boolean result = repo.reserveSeats("id", 2);
+        assertFalse(result);
+    }
+
+    @Test
+    void cancelSeats_returnsFalse_primePath12() {
+        boolean result = repo.cancelSeats("id", 2);
+        assertFalse(result);
     }
 }
