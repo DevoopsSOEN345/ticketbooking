@@ -69,7 +69,7 @@ public class MyReservationsActivity extends AppCompatActivity {
             }
         });
 
-        // Display the resolved events
+        // Display the  events
         reservationViewModel.getReservedEvents().observe(this, events -> {
             if (events != null) {
                 adapter.setEvents(events);

@@ -50,10 +50,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         notifyDataSetChanged();
     }
 
-    /**
-     * Set the IDs of events the current user has already reserved.
-     * This controls whether the button says "Reserve" or "Cancel Reservation".
-     */
+    
+     //Whether the button says "Reserve" or "Cancel Reservation".
+    
     public void setReservedEventIds(Set<String> reservedEventIds) {
         this.reservedEventIds = reservedEventIds != null ? reservedEventIds : new HashSet<>();
         notifyDataSetChanged();

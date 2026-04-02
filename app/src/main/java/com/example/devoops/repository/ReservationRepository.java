@@ -94,9 +94,9 @@ public class ReservationRepository {
         });
     }
 
-    /**
-     * Cancel a reservation. Increments the event's openSeats by 1 and removes the reservation.
-     */
+    
+    // Cancel a reservation
+    
     public void cancelReservation(String reservationId, String eventId, ReservationCallback callback) {
         // Remove the reservation record
         db.child("reservations").child(reservationId).removeValue()
@@ -130,9 +130,9 @@ public class ReservationRepository {
                 });
     }
 
-    /**
-     * Get all reservations for a specific user (live-updating).
-     */
+    
+    //Get all reservations for a specific user (live-updating).
+    
     public LiveData<List<Reservation>> getReservationsForUser(String userId) {
         MutableLiveData<List<Reservation>> liveData = new MutableLiveData<>();
 
@@ -162,9 +162,9 @@ public class ReservationRepository {
         return liveData;
     }
 
-    /**
-     * Fetch a single event by ID (one-shot read).
-     */
+    
+     //Fetch a single event by ID (one-shot read).
+     
     public void getEventById(String eventId, EventCallback callback) {
         db.child("events").child(eventId).get()
                 .addOnSuccessListener(snapshot -> {

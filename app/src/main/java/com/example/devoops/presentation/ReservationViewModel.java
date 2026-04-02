@@ -51,10 +51,10 @@ public class ReservationViewModel extends ViewModel {
         this.eventsRef = eventsRef;
     }
 
-    /**
-     * Initialize the ViewModel with the current user's ID.
-     * Call this once from the Activity after getting the UID from FirebaseAuth.
-     */
+    
+     //ViewModel with the current user's ID. (not admin)
+     
+     
     public void init(String userId) {
         if (initialized) return;
         this.userId = userId;
@@ -62,10 +62,10 @@ public class ReservationViewModel extends ViewModel {
         listenToUserReservations();
     }
 
-    /**
-     * Attaches a live listener on the user's reservations.
-     * Whenever reservations change, it fetches the corresponding events.
-     */
+    
+     //Attaches a listener on the user's reservations for changes and calls events
+     
+     
     private void listenToUserReservations() {
         FirebaseDatabase.getInstance().getReference()
                 .child("reservations")
@@ -92,10 +92,10 @@ public class ReservationViewModel extends ViewModel {
                 });
     }
 
-    /**
-     * Takes the raw reservation list, updates the ID set and map,
-     * then fetches each event one by one.
-     */
+    
+     //Takes the raw reservation list, updates the ID set and map,
+     //then fetches each event one by one.
+     
     private void processReservations(List<Reservation> reservations) {
         eventToReservationMap.clear();
         Set<String> ids = new HashSet<>();
@@ -143,16 +143,13 @@ public class ReservationViewModel extends ViewModel {
         }
     }
 
-    /**
-     * The set of event IDs the user has reserved.
-     */
+    
+    //Events Reserved
     public LiveData<Set<String>> getReservedEventIds() {
         return reservedEventIds;
     }
 
-    /**
-     * The full Event objects for all of the user's reservations.
-     */
+    
     public LiveData<List<Event>> getReservedEvents() {
         return reservedEvents;
     }
@@ -161,9 +158,9 @@ public class ReservationViewModel extends ViewModel {
         return statusMessage;
     }
 
-    /**
-     * Reserve a seat for the current user on the given event.
-     */
+    
+    //Reserve a seat for the current user on a given event.
+     
     public void reserveEvent(Event event) {
         if (userId == null) {
             statusMessage.setValue("Not logged in");
@@ -184,9 +181,9 @@ public class ReservationViewModel extends ViewModel {
                 });
     }
 
-    /**
-     * Cancel the current user's reservation for the given event.
-     */
+    
+    //Cancel the current user's reservation
+
     public void cancelReservation(Event event) {
         String reservationId = eventToReservationMap.get(event.getEventId());
         if (reservationId == null) {

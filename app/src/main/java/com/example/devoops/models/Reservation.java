@@ -7,7 +7,7 @@ public class Reservation {
     private String eventId;
     private long timestamp;
 
-    // Required empty constructor for Firebase
+    // Empty constructor for Firebase
     public Reservation() {}
 
     public Reservation(String reservationId, String userId, String eventId, long timestamp) {

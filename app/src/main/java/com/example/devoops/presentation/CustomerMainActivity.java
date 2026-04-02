@@ -47,7 +47,7 @@ public class CustomerMainActivity extends AppCompatActivity {
         tvActiveFilters = findViewById(R.id.tvActiveFilters);
         Button btnMyReservations = findViewById(R.id.btnMyReservations);
 
-        // --- Set up adapter (customer mode) ---
+        // Set up adapter (customer mode)
         adapter = new EventAdapter(false, new EventAdapter.OnEventClickListener() {
             @Override
             public void onEdit(Event event) {
@@ -60,7 +60,7 @@ public class CustomerMainActivity extends AppCompatActivity {
             }
         });
 
-        // Set the reserve listener for the customer
+        // Reserve listener for the customer
         adapter.setReserveListener(new EventAdapter.OnReserveClickListener() {
             @Override
             public void onReserve(Event event) {
@@ -90,15 +90,15 @@ public class CustomerMainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // --- ViewModels ---
+        // ViewModels
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
         reservationViewModel = new ViewModelProvider(this).get(ReservationViewModel.class);
 
-        // Initialize reservation VM with current user's UID
+        // Reservation VM with user's UID
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         reservationViewModel.init(uid);
 
-        // Observe filtered events
+        // Observe  events
         viewModel.getFilteredEvents().observe(this, events -> {
             if (events != null) {
                 adapter.setEvents(events);
@@ -106,7 +106,6 @@ public class CustomerMainActivity extends AppCompatActivity {
         });
 
         // Observe reserved event IDs so the adapter shows "Cancel Reservation"
-        // instead of "Reserve" for already-reserved events
         reservationViewModel.getReservedEventIds().observe(this, ids -> {
             if (ids != null) {
                 adapter.setReservedEventIds(ids);
@@ -120,7 +119,7 @@ public class CustomerMainActivity extends AppCompatActivity {
             }
         });
 
-        // --- Search ---
+        // Search Bar
         btnSearch.setOnClickListener(v -> {
             if (etSearch.getVisibility() == View.GONE) {
                 etSearch.setVisibility(View.VISIBLE);
@@ -140,10 +139,10 @@ public class CustomerMainActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // --- Filter ---
+        // Filter Button 
         btnFilter.setOnClickListener(v -> showFilterDialog());
 
-        // --- My Reservations button ---
+        // My Reservations button
         btnMyReservations.setOnClickListener(v -> {
             Intent intent = new Intent(CustomerMainActivity.this, MyReservationsActivity.class);
             startActivity(intent);
