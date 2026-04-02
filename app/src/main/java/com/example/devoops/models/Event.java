@@ -1,5 +1,7 @@
 package com.example.devoops.models;
 
+import com.google.firebase.database.Exclude;
+
 public class Event {
     private String eventId;
     private String name;
@@ -39,9 +41,14 @@ public class Event {
     public void setOpenSeats(int openSeats) { this.openSeats = openSeats; }
     public EventStatus getEventStatus() { return eventStatus; }
     public void setEventStatus(EventStatus eventStatus) { this.eventStatus = eventStatus; }
+
+    @Exclude
     public boolean hasEnoughSeats(int quantity) { return openSeats >= quantity; }
+
     public void reserveSeats(int quantity) { openSeats -= quantity; }
     public void cancelSeats(int quantity) { openSeats = Math.min(totalSeats, openSeats + quantity); }
     public void cancelEvent() { this.eventStatus = EventStatus.CANCELLED; }
+
+    @Exclude
     public boolean isActive() { return eventStatus == EventStatus.ACTIVE; }
 }
