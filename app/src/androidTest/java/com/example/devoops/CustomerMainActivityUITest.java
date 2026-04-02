@@ -20,8 +20,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static androidx.test.espresso.matcher.ViewMatchers.Visibility;
 import static org.hamcrest.Matchers.containsString;
+import androidx.test.espresso.matcher.ViewMatchers.Visibility;
 
 @RunWith(AndroidJUnit4.class)
 public class CustomerMainActivityUITest {
