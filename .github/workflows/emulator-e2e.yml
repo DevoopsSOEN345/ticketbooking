@@ -46,15 +46,6 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Start Firebase Emulators
-        run: firebase emulators:start &
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FB_TOKEN }}
-
-      - name: Wait for emulators to be ready
-        run: |
-          timeout 60 bash -c 'until curl -sf http://localhost:4400; do sleep 2; done'
-
       - name: Run integration and instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -62,8 +53,11 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: Nexus 6
-          script: ./gradlew --stacktrace --no-daemon connectedDebugAndroidTest
+          script: |
+            firebase emulators:exec --project demo-test \
+              "./gradlew --stacktrace --no-daemon connectedDebugAndroidTest"
         env:
+          FIREBASE_TOKEN: ${{ secrets.FB_TOKEN }}
           FIREBASE_EMULATOR_HOST: localhost
 
       - name: Upload instrumented test results

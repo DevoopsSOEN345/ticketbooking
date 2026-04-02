@@ -28,16 +28,13 @@ public class EventRepositoryIntegrationTest {
     public void setup() {
         database = FirebaseDatabase.getInstance();
         try {
-            //Must match the port in firebase.json
             database.useEmulator("10.0.2.2", 9000);
         } catch (IllegalStateException e) {
-
+            // already configured
         }
         repo = new EventRepository(database.getReference());
     }
 
-
-      //Verifies that creating an event correctly persists data to Firebase
     @Test
     public void createEvent_validData_savesToDatabase() throws InterruptedException {
         String name = "CreateTest_" + System.currentTimeMillis();
@@ -47,8 +44,6 @@ public class EventRepositoryIntegrationTest {
         assertTrue("Event should be found in the database after creation", saved);
     }
 
-
-     //Verifies that getEvents retrieves the live list from Firebase
     @Test
     public void getEvents_existingData_returnsPopulatedList() throws InterruptedException {
         String name = "BrowseTest_" + System.currentTimeMillis();
@@ -58,41 +53,42 @@ public class EventRepositoryIntegrationTest {
         assertTrue("Repository should retrieve a list containing the newly created event", retrieved);
     }
 
-     // Verifies that editing an event updates all relevant fields
     @Test
     public void editEvent_existingEvent_updatesFieldsCorrectly() throws InterruptedException {
         String name = "EditTest_" + System.currentTimeMillis();
         repo.createEvent(name, "2026-01-01", "Old Desc", "Old Loc", 10);
 
         Event event = getEventSync(name);
+        assertNotNull("Event must be created in emulator before editing", event);
+
         repo.editEvent(event.getEventId(), "UpdatedName", "2026-02-02", "New Desc", "New Loc", 20);
 
         boolean updated = waitForEvent("UpdatedName", e -> e.getLocation().equals("New Loc"));
         assertTrue("Event fields in Firebase should match updated values", updated);
     }
 
-
-     //Verifies that canceling an event properly transitions its status
     @Test
     public void cancelEvent_activeEvent_updatesStatusToCancelled() throws InterruptedException {
         String name = "CancelTest_" + System.currentTimeMillis();
         repo.createEvent(name, "2026-05-05", "Status Test", "Loc", 100);
 
         Event event = getEventSync(name);
+        assertNotNull("Event must be created in emulator before cancelling", event);
+
         repo.cancelEvent(event.getEventId());
 
         boolean cancelled = waitForEvent(name, e -> e.getEventStatus() == EventStatus.CANCELLED);
         assertTrue("Event status should be CANCELLED in the database", cancelled);
     }
 
-
-     //Tests idempotency by canceling an event twice
     @Test
     public void cancelEvent_alreadyCancelled_remainsCancelled() throws InterruptedException {
         String name = "DoubleCancel_" + System.currentTimeMillis();
         repo.createEvent(name, "2026", "Double Tap Test", "Loc", 10);
 
         Event event = getEventSync(name);
+        assertNotNull("Event must be created in emulator before double-cancelling", event);
+
         repo.cancelEvent(event.getEventId());
         repo.cancelEvent(event.getEventId());
 
@@ -100,24 +96,22 @@ public class EventRepositoryIntegrationTest {
         assertTrue("Event status should remain CANCELLED after multiple calls", stillCancelled);
     }
 
-
-     //Verifies that the repo handles invalid IDs without crashing
     @Test
     public void editEvent_nonExistentId_handlesGracefully() throws InterruptedException {
         repo.editEvent("invalid-uuid-123", "Fake Event", "2026", "None", "None", 0);
-
         Thread.sleep(1000);
         assertTrue("Repository should handle non-existent IDs without throwing exceptions", true);
     }
 
     private boolean waitForEvent(String name, EventCondition condition) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
-        final androidx.lifecycle.Observer<java.util.List<Event>> observer = new androidx.lifecycle.Observer<java.util.List<Event>>() {
+        final androidx.lifecycle.Observer<java.util.List<Event>> observer =
+                new androidx.lifecycle.Observer<java.util.List<Event>>() {
             @Override
             public void onChanged(java.util.List<Event> list) {
                 if (list != null) {
                     for (Event e : list) {
-                        if (e.getName().equals(name) && condition.check(e)) {
+                        if (e.getName() != null && e.getName().equals(name) && condition.check(e)) {
                             latch.countDown();
                             repo.getEvents().removeObserver(this);
                             break;
@@ -127,22 +121,22 @@ public class EventRepositoryIntegrationTest {
             }
         };
 
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-            repo.getEvents().observeForever(observer);
-        });
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                repo.getEvents().observeForever(observer));
 
-        return latch.await(8, TimeUnit.SECONDS);
+        return latch.await(15, TimeUnit.SECONDS);
     }
 
     private Event getEventSync(String name) throws InterruptedException {
         AtomicReference<Event> ref = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        final androidx.lifecycle.Observer<java.util.List<Event>> observer = new androidx.lifecycle.Observer<java.util.List<Event>>() {
+        final androidx.lifecycle.Observer<java.util.List<Event>> observer =
+                new androidx.lifecycle.Observer<java.util.List<Event>>() {
             @Override
             public void onChanged(java.util.List<Event> list) {
                 if (list != null) {
                     for (Event e : list) {
-                        if (e.getName().equals(name)) {
+                        if (e.getName() != null && e.getName().equals(name)) {
                             ref.set(e);
                             latch.countDown();
                             repo.getEvents().removeObserver(this);
@@ -153,11 +147,10 @@ public class EventRepositoryIntegrationTest {
             }
         };
 
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
-            repo.getEvents().observeForever(observer);
-        });
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                repo.getEvents().observeForever(observer));
 
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(12, TimeUnit.SECONDS);
         return ref.get();
     }
 

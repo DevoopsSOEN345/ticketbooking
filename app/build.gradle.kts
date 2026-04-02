@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.firebase.database)
+    implementation(libs.espresso.contrib)
     androidTestImplementation(libs.espresso.core)
     
     // Testing dependencies for 100% code coverage
