@@ -87,6 +87,31 @@ public class EventRepository {
                     Event event = data.getValue(Event.class);
                     if (event != null) {
                         event.setEventId(data.getKey());
+                        list.add(event);
+                    }
+                }
+                Log.d("REPO_DEBUG", "Fetched " + list.size() + " events from Firebase");
+                liveData.setValue(list);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("REPO_DEBUG", "Read failed: " + error.getMessage());
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<List<Event>> getActiveEvents() {
+        MutableLiveData<List<Event>> liveData = new MutableLiveData<>();
+        db.child("events").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<Event> list = new ArrayList<>();
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Event event = data.getValue(Event.class);
+                    if (event != null) {
+                        event.setEventId(data.getKey());
                         // Only include active events
                         if (event.getEventStatus() != EventStatus.CANCELLED) {
                             list.add(event);

@@ -25,13 +25,13 @@ public class EventViewModel extends ViewModel {
 
     public EventViewModel() {
         repo = new EventRepository();
-        events = repo.getEvents();
+        events = repo.getActiveEvents();
         setupFiltering();
     }
 
     public EventViewModel(EventRepository repo) {
         this.repo = repo;
-        this.events = repo.getEvents();
+        this.events = repo.getActiveEvents();
         setupFiltering();
     }
 

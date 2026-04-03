@@ -105,13 +105,12 @@ public class EventRepositoryIntegrationTest {
 
     private boolean waitForEvent(String name, EventCondition condition) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
-        final androidx.lifecycle.Observer<java.util.List<Event>> observer =
-                new androidx.lifecycle.Observer<java.util.List<Event>>() {
+        final androidx.lifecycle.Observer<java.util.List<Event>> observer = new androidx.lifecycle.Observer<java.util.List<Event>>() {
             @Override
             public void onChanged(java.util.List<Event> list) {
                 if (list != null) {
                     for (Event e : list) {
-                        if (e.getName() != null && e.getName().equals(name) && condition.check(e)) {
+                        if (e.getName().equals(name) && condition.check(e)) {
                             latch.countDown();
                             repo.getEvents().removeObserver(this);
                             break;
@@ -121,22 +120,22 @@ public class EventRepositoryIntegrationTest {
             }
         };
 
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
-                repo.getEvents().observeForever(observer));
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            repo.getEvents().observeForever(observer);
+        });
 
-        return latch.await(15, TimeUnit.SECONDS);
+        return latch.await(8, TimeUnit.SECONDS);
     }
 
     private Event getEventSync(String name) throws InterruptedException {
         AtomicReference<Event> ref = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        final androidx.lifecycle.Observer<java.util.List<Event>> observer =
-                new androidx.lifecycle.Observer<java.util.List<Event>>() {
+        final androidx.lifecycle.Observer<java.util.List<Event>> observer = new androidx.lifecycle.Observer<java.util.List<Event>>() {
             @Override
             public void onChanged(java.util.List<Event> list) {
                 if (list != null) {
                     for (Event e : list) {
-                        if (e.getName() != null && e.getName().equals(name)) {
+                        if (e.getName().equals(name)) {
                             ref.set(e);
                             latch.countDown();
                             repo.getEvents().removeObserver(this);
@@ -147,10 +146,11 @@ public class EventRepositoryIntegrationTest {
             }
         };
 
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
-                repo.getEvents().observeForever(observer));
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            repo.getEvents().observeForever(observer);
+        });
 
-        latch.await(12, TimeUnit.SECONDS);
+        latch.await(5, TimeUnit.SECONDS);
         return ref.get();
     }
 
