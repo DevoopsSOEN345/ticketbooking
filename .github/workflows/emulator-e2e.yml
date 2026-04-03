@@ -37,7 +37,7 @@ jobs:
           profile: Nexus 6
           # We start Firebase INSIDE the runner script so it stays alive during tests
           script: |
-            firebase emulators:start  & 
+            firebase emulators:start --host 0.0.0.0 & 
             timeout 60 bash -c 'until curl -sf http://localhost:4400; do sleep 5; done'
             ./gradlew connectedDebugAndroidTest --stacktrace
         env:

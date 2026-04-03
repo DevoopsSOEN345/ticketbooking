@@ -124,7 +124,7 @@ public class EventRepositoryIntegrationTest {
             repo.getEvents().observeForever(observer);
         });
 
-        return latch.await(8, TimeUnit.SECONDS);
+        return latch.await(20, TimeUnit.SECONDS);
     }
 
     private Event getEventSync(String name) throws InterruptedException {
@@ -150,7 +150,7 @@ public class EventRepositoryIntegrationTest {
             repo.getEvents().observeForever(observer);
         });
 
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(20, TimeUnit.SECONDS);
         return ref.get();
     }
 
