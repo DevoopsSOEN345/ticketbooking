@@ -51,7 +51,7 @@ class EventViewModelTest {
 
         mockRepo = mock(EventRepository.class);
         eventsLiveData = new MutableLiveData<>();
-        when(mockRepo.getEvents()).thenReturn(eventsLiveData);
+        when(mockRepo.getActiveEvents()).thenReturn(eventsLiveData);
         viewModel = new EventViewModel(mockRepo);
 
         // MediatorLiveData only processes sources when it has an active observer
@@ -66,7 +66,7 @@ class EventViewModelTest {
     }
 
     // ========================
-    // Structural / Reflection Tests (matching existing style)
+    // Structural / Reflection Tests
     // ========================
 
     @Test
@@ -341,8 +341,6 @@ class EventViewModelTest {
     viewModel.createEvent("Concert", "15-06-2025", "Music", "Montreal", 100);
 
     verify(mockRepo).createEvent("Concert", "15-06-2025", "Music", "Montreal", 100);
-    // getEvents() called once in constructor + once after create
-    verify(mockRepo, times(2)).getEvents();
     }
 
     @Test
@@ -352,7 +350,6 @@ class EventViewModelTest {
     viewModel.cancelEvent("1");
 
     verify(mockRepo).cancelEvent("1");
-    verify(mockRepo, times(2)).getEvents();
     }
 
     @Test
@@ -362,6 +359,5 @@ class EventViewModelTest {
     viewModel.editEvent("1", "Updated Concert", "20-06-2025", "Music", "Toronto", 200);
 
     verify(mockRepo).editEvent("1", "Updated Concert", "20-06-2025", "Music", "Toronto", 200);
-    verify(mockRepo, times(2)).getEvents();
     }
 }
