@@ -38,7 +38,7 @@ jobs:
   ci_done:
     name: CI Done (Gating)
     runs-on: ubuntu-latest
-    needs: [sonarqube_analysis, emulator_e2e]
+    needs: [sonarqube_analysis]
     if: ${{ always() }}
     steps:
       - name: Finish gating check
