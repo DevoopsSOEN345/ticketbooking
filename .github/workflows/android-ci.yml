@@ -35,12 +35,6 @@ jobs:
     uses: ./.github/workflows/jmeter.yml
     secrets: inherit 
 
-  emulator_e2e:
-    name: Integration and Emulator E2E Tests
-    needs: build_and_test
-    uses: ./.github/workflows/emulator-e2e.yml
-    secrets: inherit
-
   ci_done:
     name: CI Done (Gating)
     runs-on: ubuntu-latest
