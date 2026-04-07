@@ -92,7 +92,8 @@ public class CustomerMainActivity extends AppCompatActivity {
 
         // ViewModels 
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
-        reservationViewModel = new ViewModelProvider(this).get(ReservationViewModel.class);
+        reservationViewModel = new ViewModelProvider(this, new ReservationViewModelFactory())
+                .get(NotifyingReservationViewModel.class);
 
         // Observe filtered events
         viewModel.getFilteredEvents().observe(this, events -> {

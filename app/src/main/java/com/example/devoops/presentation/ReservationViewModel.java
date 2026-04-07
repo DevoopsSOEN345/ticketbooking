@@ -62,6 +62,10 @@ public class ReservationViewModel extends ViewModel {
         listenToUserReservations();
     }
 
+    protected boolean isInitialized() {
+        return initialized;
+    }
+
     
      //Attaches a listener on the user's reservations for changes and calls events
      
@@ -172,6 +176,7 @@ public class ReservationViewModel extends ViewModel {
                     @Override
                     public void onSuccess(String reservationId) {
                         statusMessage.setValue("Reserved successfully!");
+                        onReservationSuccess(event, reservationId);
                     }
 
                     @Override
@@ -196,6 +201,7 @@ public class ReservationViewModel extends ViewModel {
                     @Override
                     public void onSuccess(String id) {
                         statusMessage.setValue("Reservation cancelled");
+                        onCancellationSuccess(event, id);
                     }
 
                     @Override
@@ -204,4 +210,12 @@ public class ReservationViewModel extends ViewModel {
                     }
                 });
     }
+
+    // ─── Template Method hooks (OCP) ───────────────────────────────────────────
+    // Empty by default. Subclasses override to add cross-cutting behaviour
+    // (e.g. notifications) without modifying this class.
+
+    protected void onReservationSuccess(Event event, String reservationId) { }
+
+    protected void onCancellationSuccess(Event event, String reservationId) { }
 }
