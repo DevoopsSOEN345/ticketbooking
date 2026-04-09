@@ -1,4 +1,5 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,7 +7,15 @@ plugins {
     id("jacoco")
 }
 
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
+}
+
 android {
+    buildFeatures {
+        buildConfig = true
+    }
     namespace = "com.example.devoops"
     compileSdk {
         version = release(36) {
@@ -22,6 +31,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "SMTP_HOST", "\"${localProps.getProperty("SMTP_HOST", "smtp.gmail.com")}\"")
+        buildConfigField("int",    "SMTP_PORT", localProps.getProperty("SMTP_PORT", "587"))
+        buildConfigField("String", "SMTP_USERNAME", "\"${localProps.getProperty("SMTP_USERNAME", "")}\"")
+        buildConfigField("String", "SMTP_PASSWORD", "\"${localProps.getProperty("SMTP_PASSWORD", "")}\"")
     }
 
     buildTypes {
@@ -36,9 +50,25 @@ android {
             )
         }
     }
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/NOTICE.md",
+                "META-INF/LICENSE.md"
+            )
+        }
     }
 }
 tasks.withType<Test> {
@@ -67,6 +97,10 @@ dependencies {
         exclude(group = "com.google.protobuf", module = "protobuf-lite")
     }
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
+
+    // Email (JavaMail for SMTP)
+    implementation("com.sun.mail:android-mail:1.6.7")
+    implementation("com.sun.mail:android-activation:1.6.7")
 
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
