@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.devoops.R;
 import com.example.devoops.models.Event;
+import com.example.devoops.repository.AuthRepository;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class CustomerMainActivity extends AppCompatActivity {
     private ReservationViewModel reservationViewModel;
     private EventAdapter adapter;
     private TextView tvActiveFilters;
+    private AuthRepository authRepository;
 
     private String currentFilterDate = "";
     private String currentFilterLocation = "";
@@ -40,12 +42,15 @@ public class CustomerMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customer);
 
+        authRepository = new AuthRepository();
+
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         EditText etSearch = findViewById(R.id.etSearch);
         ImageView btnSearch = findViewById(R.id.btnSearch);
         ImageView btnFilter = findViewById(R.id.btnFilter);
         tvActiveFilters = findViewById(R.id.tvActiveFilters);
         Button btnMyReservations = findViewById(R.id.btnMyReservations);
+        Button btnLogout = findViewById(R.id.btnLogout);
 
         // --- Set up adapter (customer mode) ---
         adapter = new EventAdapter(false, new EventAdapter.OnEventClickListener() {
@@ -90,7 +95,7 @@ public class CustomerMainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // ViewModels 
+        // ViewModels
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
         reservationViewModel = new ViewModelProvider(this, new ReservationViewModelFactory())
                 .get(NotifyingReservationViewModel.class);
@@ -107,15 +112,12 @@ public class CustomerMainActivity extends AppCompatActivity {
             String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             reservationViewModel.init(uid);
 
-            // Observe reserved event IDs so the adapter shows "Cancel Reservation"
-            // instead of "Reserve" for already-reserved events
             reservationViewModel.getReservedEventIds().observe(this, ids -> {
                 if (ids != null) {
                     adapter.setReservedEventIds(ids);
                 }
             });
 
-            // Observe status messages (success/error toasts)
             reservationViewModel.getStatusMessage().observe(this, msg -> {
                 if (msg != null && !msg.isEmpty()) {
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
@@ -123,7 +125,7 @@ public class CustomerMainActivity extends AppCompatActivity {
             });
         }
 
-        // Search 
+        // Search
         btnSearch.setOnClickListener(v -> {
             if (etSearch.getVisibility() == View.GONE) {
                 etSearch.setVisibility(View.VISIBLE);
@@ -143,13 +145,28 @@ public class CustomerMainActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // Filter 
+        // Filter
         btnFilter.setOnClickListener(v -> showFilterDialog());
 
-        // -My Reservations button 
+        // My Reservations
         btnMyReservations.setOnClickListener(v -> {
             Intent intent = new Intent(CustomerMainActivity.this, MyReservationsActivity.class);
             startActivity(intent);
+        });
+
+        // Logout
+        btnLogout.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Logout")
+                    .setMessage("Are you sure you want to logout?")
+                    .setPositiveButton("Logout", (dialog, which) -> {
+                        authRepository.signOut();
+                        Intent intent = new Intent(CustomerMainActivity.this, WelcomeActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
     }
 

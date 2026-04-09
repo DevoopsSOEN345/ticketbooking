@@ -7,7 +7,7 @@
     android:padding="16dp"
     android:background="@android:color/white">
 
-    <!-- Top bar: Search icon, Filter icon, My Reservations button -->
+    <!-- Top bar: Search icon, Filter icon, My Reservations button, Logout button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,6 +44,15 @@
             android:text="My Reservations"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="#3F51B5"/>
+
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Logout"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="#B00020"/>
+
     </LinearLayout>
 
     <EditText

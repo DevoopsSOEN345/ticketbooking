@@ -1,6 +1,5 @@
 package com.example.devoops.repository;
 
-import android.app.Activity;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -8,17 +7,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.devoops.models.User;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.auth.PhoneAuthOptions;
-import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.util.concurrent.TimeUnit;
 
 public class AuthRepository {
 
@@ -27,10 +17,12 @@ public class AuthRepository {
     public AuthRepository(){
         auth = FirebaseAuth.getInstance();
     }
-    //For testing
+
+    // For testing
     public AuthRepository(FirebaseAuth auth) {
         this.auth = auth;
     }
+
     private FirebaseAuth getAuth() {
         if (auth == null) {
             auth = FirebaseAuth.getInstance();
@@ -38,12 +30,12 @@ public class AuthRepository {
         return auth;
     }
 
-    public interface AuthCallback{
+    public interface AuthCallback {
         void onSuccess(String uid);
         void onError(String error);
     }
 
-    //EMAIL
+    // EMAIL
     public void signupEmail(String email, String password, AuthCallback cb) {
         auth = getAuth();
         auth.createUserWithEmailAndPassword(email, password)
@@ -63,12 +55,17 @@ public class AuthRepository {
                     if (task.isSuccessful()) {
                         cb.onSuccess(auth.getCurrentUser().getUid());
                         safeLog("USER_good", "User Good?");
-
                     } else {
                         cb.onError(task.getException().getMessage());
                     }
                 });
     }
+
+    // LOGOUT
+    public void signOut() {
+        getAuth().signOut();
+    }
+
     private void safeLog(String tag, String msg) {
         try {
             Log.d(tag, msg);
@@ -76,6 +73,7 @@ public class AuthRepository {
             // no-op for JVM unit tests
         }
     }
+
     public LiveData<User> getUserById(String uid) {
         MutableLiveData<User> liveData = new MutableLiveData<>();
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
@@ -93,5 +91,4 @@ public class AuthRepository {
 
         return liveData;
     }
-
 }
