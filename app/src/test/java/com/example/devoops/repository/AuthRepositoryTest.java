@@ -8,10 +8,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.arch.core.executor.ArchTaskExecutor;
@@ -275,6 +274,38 @@ void givenValidUid_whenGetUserByIdFails_thenLiveDataContainsNull() {
         assertEquals(null, result.getValue());
     } finally {
         ArchTaskExecutor.getInstance().setDelegate(null);
+    }
+}
+
+// ignOut — auth already initialized → signOut called directly
+
+
+@Test
+void givenAuthInitialized_whenSignOutCalled_thenFirebaseSignOutInvoked_primePath7() {
+    
+    repository.signOut();
+
+    verify(firebaseAuth).signOut();
+}
+
+
+// signOut — auth is null → getAuth() re-initializes, then signOut called
+
+
+@Test
+void givenAuthIsNull_whenSignOutCalled_thenReinitializesAndSignsOut_primePath8() throws Exception {
+    try (MockedStatic<FirebaseAuth> firebaseAuthStatic = mockStatic(FirebaseAuth.class)) {
+        firebaseAuthStatic.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
+
+        
+        java.lang.reflect.Field authField = AuthRepository.class.getDeclaredField("auth");
+        authField.setAccessible(true);
+        authField.set(repository, null);
+
+        repository.signOut();
+
+        firebaseAuthStatic.verify(FirebaseAuth::getInstance);
+        verify(firebaseAuth).signOut();
     }
 }
 }
