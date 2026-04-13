@@ -45,32 +45,16 @@ public class LoginActivity extends AppCompatActivity {
             viewModel.loginEmail(email, pass);
         });
 
-        // 2. Phone Step 1: Send OTP
-        btnSendOtp.setOnClickListener(v -> {
-            String phone = etPhone.getText().toString();
-            //viewModel.sendOTP(phone, this);
-        });
-
-        // 3. Phone Step 2: Verify OTP
-        btnVerifyOtp.setOnClickListener(v -> {
-            String code = etOtp.getText().toString();
-            String phone = etPhone.getText().toString();
-            //viewModel.verifyOTP(code, phone);
-        });
 
         // 4. Observe Status Messages
         viewModel.status.observe(this, s -> {
             Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-
-            if (s.equals("OTP sent")) {
-                etOtp.setVisibility(View.VISIBLE);
-                btnVerifyOtp.setVisibility(View.VISIBLE);
-            }
         });
     }
     private void navigate(User user) {
         Intent intent;
 
+        Log.d("LOGIN", "User role: " + user.getRole());
         if (user.getRole() == UserRole.ADMIN) {
             intent = new Intent(this, AdminMainActivity.class);
         } else {
@@ -83,10 +67,8 @@ public class LoginActivity extends AppCompatActivity {
     private void initViews() {
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
-        etPhone = findViewById(R.id.etPhone);
         etOtp = findViewById(R.id.etOtp);
         btnLoginEmail = findViewById(R.id.btnLoginEmail);
-        btnSendOtp = findViewById(R.id.btnSendOtp);
         btnVerifyOtp = findViewById(R.id.btnVerifyOtp);
     }
 }

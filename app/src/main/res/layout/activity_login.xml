@@ -41,30 +41,11 @@
             android:layout_marginTop="16dp"/>
     </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OR"
-        android:layout_margin="16dp"/>
-
     <LinearLayout
         android:id="@+id/phoneSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-
-        <EditText
-            android:id="@+id/etPhone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="+1 123 456 7890"
-            android:inputType="phone"/>
-
-        <Button
-            android:id="@+id/btnSendOtp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Send SMS Code"/>
 
         <EditText
             android:id="@+id/etOtp"

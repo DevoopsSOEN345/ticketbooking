@@ -40,25 +40,6 @@
         android:text="Sign Up with Email"
         android:layout_marginTop="8dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OR"
-        android:layout_margin="16dp"/>
-
-    <EditText
-        android:id="@+id/etSignupPhone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="+1 123 456 7890"
-        android:inputType="phone"/>
-
-    <Button
-        android:id="@+id/btnSendSignupOTP"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Verify Phone Number"/>
-
     <EditText
         android:id="@+id/etSignupOTP"
         android:layout_width="match_parent"
